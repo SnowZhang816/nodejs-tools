@@ -11,34 +11,42 @@ const config = {
 const args = process.argv.slice(2);
 
 /** 上传目录 */
-let localPath = 'D:\\JenkensWork\\out\\1.0.2';
+let localPath = 'D:\\JenkensWork\\out';
 if (args[0]) {
 	localPath = args[0];
 }
+
 let remoteDir = '/data/front/gxfc_game/1.0.22/';
 if (args[1]) {
 	remoteDir = args[1];
 }
 remoteDir = remoteDir.replace(/\\/g, '/');
 
+function getDir() {
+	let jsonFile = path.join(localPath, 'version.json');
+	let data = fs.readFileSync(jsonFile, 'utf8');
+	let versionInfo = JSON.parse(data);
+	let dir = path.join(localPath, versionInfo.versionStr);
+	return dir;
+}
+
 // 获取所有文件
-function getAllFiles(dir, allFiles) {
+function getAllFiles(dir, allFiles, rootLocalPath) {
 	allFiles = allFiles || [];
 	const files = fs.readdirSync(dir);
 	for (const file of files) {
 		const filePath = path.join(dir, file);
 		if (fs.statSync(filePath).isDirectory()) {
-			getAllFiles(filePath, allFiles);
+			getAllFiles(filePath, allFiles, rootLocalPath);
 		} else {
-			const relationPath = path.relative(localPath, filePath);
+			const relationPath = path.relative(rootLocalPath, filePath);
 			allFiles.push({ filePath, relationPath });
 		}
 	}
 	return allFiles;
 }
 
-async function uploadFiles(allFiles) {
-	// 每50个文件则创建一个上传实例
+async function uploadFiles(allFiles, rootLocalPath) {
 	console.log('开始上传:', allFiles.length);
 	let total = allFiles.length;
 	let maxIns = 8;
@@ -47,7 +55,7 @@ async function uploadFiles(allFiles) {
 	for (let i = 0; i < allFiles.length; i += preIns) {
 		const files = allFiles.slice(i, i + preIns);
 		console.log(`创建上传实例${i}: 文件数: ${files.length}`);
-		ins.push(new upload(localPath, remoteDir, config, files, i));
+		ins.push(new upload(rootLocalPath, remoteDir, config, files, i));
 	}
 	let results = await Promise.all(ins.map((i) => i.connectAndUpload()));
 	// 统计results
@@ -66,9 +74,10 @@ async function uploadFiles(allFiles) {
 // 主函数
 async function main() {
 	try {
+		let dir = getDir();
 		// 获取所有文件
-		let allFiles = getAllFiles(localPath);
-		await uploadFiles(allFiles);
+		let allFiles = getAllFiles(dir, [], dir);
+		await uploadFiles(allFiles, dir);
 		console.log('所有任务完成');
 	} catch (err) {
 		console.error('操作失败:', err.message);
