@@ -1,7 +1,7 @@
 interface Ware {
 	onInstall?(evt: ExtendableEvent): void;
 	onActivate?(evt: ExtendableEvent): void;
-	onFetch?(request: Request, response?: Response | null): Promise<Response>;
+	onFetch?(request: Request): Promise<Response> | null;
 	onMessage?(evt: ExtendableMessageEvent): void;
 }
 
@@ -65,29 +65,26 @@ export class ServiceWorkerWare {
 		let response = this.runMiddleware(this.wares, 0, evt.request, null);
 		if (response) {
 			evt.respondWith(response);
-		} else {
-			console.log('没有数据，使用默认onFetch');
-			return evt.respondWith(fetch(evt.request));
 		}
 	}
 
-	runMiddleware(wares: Ware[], current: number, request: Request, response: Response | null): Promise<Response> | null {
+	runMiddleware(wares: Ware[], current: number, request: Request, response: Promise<Response> | Response | null): Promise<Response> | Response | null {
 		// Example implementation: Replace this with your actual middleware logic
-		if (current >= wares.length) {
-			console.log('runMiddleware 结束', current, wares.length, request);
-			if (response) {
-				return Promise.resolve(response);
-			} else {
-				return null;
-			}
+		if (response) {
+			return response;
 		}
 
-		const mw = wares[current];
-		if (typeof mw.onFetch !== 'function') {
-			return this.runMiddleware(wares, current + 1, request, response);
-		} else {
-			return mw.onFetch(request, response);
+		if (current >= wares.length) {
+			console.log('runMiddleware 结束', current, wares.length, request);
+			return response;
 		}
+
+		let result = null;
+		const mw = wares[current];
+		if (typeof mw.onFetch === 'function') {
+			result = mw.onFetch(request);
+		}
+		return this.runMiddleware(wares, current + 1, request, result);
 	}
 
 	onMessage(evt: ExtendableMessageEvent): void {

@@ -3,6 +3,7 @@ export class DB {
 	storeName: string;
 	version: number;
 	db: IDBDatabase | null = null;
+
 	constructor(storeName: string, dbName: string = 'casual-db', version: number = 1) {
 		this.dbName = dbName;
 		this.storeName = storeName;
@@ -71,11 +72,7 @@ export class DB {
 				let request = objectStore.get(key);
 				request.onsuccess = (event) => {
 					let target = event.target as IDBRequest;
-					if (!target.result) {
-						resolve(null);
-						return;
-					}
-					resolve(target.result.value);
+					resolve(target.result);
 				};
 				request.onerror = (event) => {
 					resolve(null);

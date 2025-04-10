@@ -1,5 +1,3 @@
-import { DB } from './DB';
-
 importScripts('./libs/jszip.min.js');
 
 type MimeTypeMap = {
@@ -11,6 +9,7 @@ type MimeTypeMap = {
 	html: string;
 	bin: string;
 	mp3: string;
+	webp: string;
 	// 如果需要，可以添加更多文件类型和对应的 MIME 类型
 };
 
@@ -24,6 +23,7 @@ const MimeMap: MimeTypeMap = {
 	html: 'text/html',
 	bin: 'application/octet-stream',
 	mp3: 'audio/mpeg',
+	webp: 'image/webp',
 	// ttf: "application/octet-stream",
 	// ... 其他映射
 };
@@ -38,9 +38,8 @@ export class BundleCache {
 	unzipProgress = 0.1;
 	installProgress = 0.1;
 
-	db: DB | null = null;
-
-	cacheName = 'bundleCache';
+	bundleCacheName = 'bundle';
+	installTagCacheName = 'instalTag';
 
 	onMessage(evt: ExtendableMessageEvent) {
 		if (evt.data.what === 'installBundle') {
@@ -49,19 +48,45 @@ export class BundleCache {
 		}
 	}
 
-	getDB() {
-		return new Promise<DB | null>((resolve) => {
-			if (!this.db) {
-				this.db = new DB(this.cacheName);
-			}
-			this.db.getDB().then((db) => {
-				if (db) {
-					resolve(this.db!);
-				} else {
-					console.error('Failed to open database');
+	getInstall(bundle: string, version: string) {
+		return new Promise<any>((resolve, reject) => {
+			caches
+				.open(this.installTagCacheName)
+				.then((cache) => {
+					cache
+						.match(bundle)
+						.then((response: Response | undefined) => {
+							if (response) {
+								response.json().then((data) => {
+									console.log('getInstall', data);
+									resolve(data);
+								});
+							} else {
+								resolve(null);
+							}
+						})
+						.catch((err) => {
+							resolve(null);
+						});
+				})
+				.catch((err) => {
 					resolve(null);
-				}
-			});
+				});
+		});
+	}
+
+	saveInstall(bundle: string, version: string) {
+		return new Promise<boolean>((resolve, reject) => {
+			caches
+				.open(this.installTagCacheName)
+				.then((cache) => {
+					let data = JSON.stringify({ name: bundle, version: version });
+					cache.put(bundle, new Response(data));
+					resolve(true);
+				})
+				.catch((err) => {
+					reject(err);
+				});
 		});
 	}
 
@@ -69,64 +94,62 @@ export class BundleCache {
 		let bundle = evt.data.bundle;
 		let version = evt.data.version;
 
-		this.getDB().then((db) => {
-			if (!db) {
-				this.notifyBundleInstallError(evt, bundle, 'db error');
-				return;
-			}
-			db.getItem(bundle).then((value) => {
-				if (!value) {
-					const url = `assets/${bundle}.${version}.zip`;
-					fetch(url).then((response) => {
-						if (!response.ok) {
-							this.notifyBundleInstallError(evt, bundle, 'fetch error');
-							return;
-						}
-
-						if (!response.body) {
-							this.notifyBundleInstallError(evt, bundle, 'no response body');
-							return;
-						}
-
-						let reader = response.body!.getReader();
-						let contentLength = +(response.headers.get('content-length') || '0');
-						let buffer = new Uint8Array(contentLength);
-						let receivedLength = 0; // 已接收的字节数
-						let chunks: any = []; // 用于存储读取到的所有数据块
-						let that = this;
-						this.notifyBundleInstallProgress(evt, bundle, this.connectProgress);
-						function read() {
-							reader.read().then(({ done, value }) => {
-								if (done) {
-									// 如果 done 为 true，表示数据读取完成
-									let position = 0;
-									for (let chunk of chunks) {
-										buffer.set(chunk, position);
-										position += chunk.length;
-									}
-									// 读取完成，处理 buffer
-									that.saveBundle(evt, buffer, bundle, version);
-									return;
-								}
-
-								// 如果 done 为 false，表示还有数据未读取
-								chunks.push(value); // 将当前数据块存储到数组中
-								receivedLength += value.length; // 更新已接收的字节数
-								let progress = (receivedLength / contentLength) * that.downloadProgress + that.connectProgress;
-								that.notifyBundleInstallProgress(evt, bundle, progress);
-								// 继续读取下一块数据
-								read();
-							});
-						}
-
-						read(); // 开始读取数据
-					});
-				} else {
-					console.log('bundle already installed', bundle, value);
-					this.notifyBundleInstallProgress(evt, bundle, 1);
-					this.notifyBundleInstallDone(evt, bundle);
+		this.getInstall(bundle, version).then((result) => {
+			if (!result) {
+				let url = `assets/${bundle}.zip`;
+				if (version) {
+					url = `assets/${bundle}.${version}.zip`;
 				}
-			});
+				fetch(url).then((response) => {
+					if (!response.ok) {
+						this.notifyBundleInstallError(evt, bundle, 'fetch error');
+						return;
+					}
+
+					if (!response.body) {
+						this.notifyBundleInstallError(evt, bundle, 'no response body');
+						return;
+					}
+
+					let reader = response.body!.getReader();
+					let contentLength = +(response.headers.get('content-length') || '0');
+					let buffer = new Uint8Array(contentLength);
+					let receivedLength = 0; // 已接收的字节数
+					let chunks: any = []; // 用于存储读取到的所有数据块
+					let that = this;
+					this.notifyBundleInstallProgress(evt, bundle, this.connectProgress);
+					function read() {
+						reader.read().then(({ done, value }) => {
+							if (done) {
+								// 如果 done 为 true，表示数据读取完成
+								let position = 0;
+								for (let chunk of chunks) {
+									buffer.set(chunk, position);
+									position += chunk.length;
+								}
+								// 读取完成，处理 buffer
+								that.saveBundle(evt, buffer, bundle, version);
+								return;
+							}
+
+							// 如果 done 为 false，表示还有数据未读取
+							chunks.push(value); // 将当前数据块存储到数组中
+							receivedLength += value.length; // 更新已接收的字节数
+							let progress = (receivedLength / contentLength) * that.downloadProgress + that.connectProgress;
+							that.notifyBundleInstallProgress(evt, bundle, progress);
+							// 继续读取下一块数据
+							read();
+						});
+					}
+
+					read(); // 开始读取数据
+				});
+			} else {
+				let oldVersion = result.version;
+				console.log('bundle already installed', bundle, oldVersion);
+				this.notifyBundleInstallProgress(evt, bundle, 1);
+				this.notifyBundleInstallDone(evt, bundle);
+			}
 		});
 	}
 
@@ -141,15 +164,7 @@ export class BundleCache {
 					this.unzipEntry(evt, zip, bundle)
 						.then(() => {
 							// console.log('unzipEntry done', bundle);
-							this.getDB().then((db) => {
-								if (!db) {
-									console.log('save bundle version and db error');
-									return;
-								}
-								db.setItem(bundle, version).then((value) => {
-									console.log('save bundle version', bundle, version, value);
-								});
-							});
+							this.saveInstall(bundle, version);
 							this.notifyBundleInstallDone(evt, bundle);
 							resolve();
 						})
@@ -178,7 +193,7 @@ export class BundleCache {
 			console.log('file list', list, bundle);
 
 			caches
-				.open(`bundle`)
+				.open(this.bundleCacheName)
 				.then((cache) => {
 					let promises = [];
 					let total = list.length;
@@ -264,15 +279,54 @@ export class BundleCache {
 		}
 	}
 
-	onFetch(request: Request, response: Response): Promise<Response> {
-		console.log('onFetch', request.url);
-		if (response) {
-			// 如果响应已经存在，则直接返回
-			return Promise.resolve(response);
+	cacheResponse(request: Request, response: Response) {
+		return new Promise<boolean>((resolve, reject) => {
+			caches
+				.open(this.bundleCacheName)
+				.then((cache) => {
+					cache
+						.put(request, response)
+						.then(() => {
+							console.log('cache put success', request.url);
+							resolve(true);
+						})
+						.catch((error) => {
+							console.log('cache put error', error);
+							resolve(false);
+						});
+				})
+				.catch((error) => {
+					console.log('cache open error', error);
+					resolve(false);
+				});
+		});
+	}
+
+	match(request: Request) {
+		// Get请求才缓存
+		if (request.method === 'GET') {
+			// 如果是index.html文件，不缓存
+			if (request.url.endsWith('/index.html')) {
+				return false;
+			}
+
+			// 不缓存
+
+			console.log('cache match', request.url);
+			return true;
+		}
+
+		return false;
+	}
+
+	onFetch(request: Request): Promise<Response> | null {
+		console.log('onFetch', request.url, location.href);
+		if (!this.match(request)) {
+			return null;
 		} else {
 			return new Promise((resolve, reject) => {
 				caches
-					.open('bundle')
+					.open(this.bundleCacheName)
 					.then((cache) => {
 						cache
 							.match(request)
@@ -281,17 +335,26 @@ export class BundleCache {
 									console.log('cache hit', request.url, res.headers.get('Content-Type'));
 									resolve(res);
 								} else {
-									resolve(fetch(request));
+									fetch(request).then((res) => {
+										this.cacheResponse(request, res.clone());
+										resolve(res);
+									});
 								}
 							})
 							.catch((error) => {
 								console.log('match cache error', error);
-								resolve(fetch(request));
+								fetch(request).then((res) => {
+									this.cacheResponse(request, res.clone());
+									resolve(res);
+								});
 							});
 					})
 					.catch((error) => {
 						console.log('open cache error', error);
-						resolve(fetch(request));
+						fetch(request).then((res) => {
+							this.cacheResponse(request, res.clone());
+							resolve(res);
+						});
 					});
 			});
 		}
