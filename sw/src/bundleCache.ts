@@ -41,10 +41,29 @@ export class BundleCache {
 	bundleCacheName = 'bundle';
 	installTagCacheName = 'instalTag';
 
+	href = '';
+	ignoredHosts: string[] = [];
+
 	onMessage(evt: ExtendableMessageEvent) {
 		if (evt.data.what === 'installBundle') {
 			console.log('installBundle', evt);
 			this.installBundle(evt);
+		} else if (evt.data.what === 'setIgnoreHosts') {
+			this.ignoredHosts = evt.data.hosts;
+			console.log('setIgnoreHosts', this.ignoredHosts);
+			if (evt.source) {
+				evt.source.postMessage({
+					what: 'setIgnoreHostsComplete',
+				});
+			}
+		} else if (evt.data.what === 'setHref') {
+			this.href = evt.data.href;
+			console.log('setHref', this.href);
+			if (evt.source) {
+				evt.source.postMessage({
+					what: 'setHrefComplete',
+				});
+			}
 		}
 	}
 
@@ -305,12 +324,18 @@ export class BundleCache {
 	match(request: Request) {
 		// Get请求才缓存
 		if (request.method === 'GET') {
-			// 如果是index.html文件，不缓存
-			if (request.url.endsWith('/index.html')) {
+			// 获取基础URL（去除参数、hash和index.html）
+			const u = new URL(request.url);
+			const hrefUrl = new URL(this.href);
+			if (u.origin === hrefUrl.origin && u.pathname === hrefUrl.pathname) {
+				console.log('origin and pathname same');
 				return false;
 			}
-
-			// 不缓存
+			let host = u.origin;
+			if (this.ignoredHosts.includes(host)) {
+				console.log('ignored host', host);
+				return false;
+			}
 
 			console.log('cache match', request.url);
 			return true;
@@ -320,7 +345,7 @@ export class BundleCache {
 	}
 
 	onFetch(request: Request): Promise<Response> | null {
-		console.log('onFetch', request.url, location.href);
+		console.log('onFetch', request.url);
 		if (!this.match(request)) {
 			return null;
 		} else {
