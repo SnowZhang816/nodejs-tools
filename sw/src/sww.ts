@@ -41,13 +41,13 @@ export class ServiceWorkerWare {
 				this.onMessage(evt as ExtendableMessageEvent);
 				break;
 			default:
-				throw new Error(`Unsupported event type: ${evt.type}`);
+				console.log('未知事件类型', evt.type);
 		}
 	}
 
 	onInstall(evt: ExtendableEvent): void {
 		console.log('onInstall');
-		self.skipWaiting();
+		// self.skipWaiting();
 		const installation = this.getWareTasks('onInstall');
 		evt.waitUntil(installation);
 	}
@@ -75,7 +75,7 @@ export class ServiceWorkerWare {
 		}
 
 		if (current >= wares.length) {
-			console.log('runMiddleware 结束', current, wares.length, request);
+			// console.log('runMiddleware 结束', current, wares.length, request);
 			return response;
 		}
 

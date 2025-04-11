@@ -44,10 +44,17 @@ export class BundleCache {
 	href = '';
 	ignoredHosts: string[] = [];
 
+	version = '1.0.1';
+
+	// 正在加载的bundle列表
+	installBundles: string[] = [];
+
 	onMessage(evt: ExtendableMessageEvent) {
 		if (evt.data.what === 'installBundle') {
 			console.log('installBundle', evt);
 			this.installBundle(evt);
+		} else if (evt.data.what === 'skipWaiting') {
+			self.skipWaiting();
 		} else if (evt.data.what === 'setIgnoreHosts') {
 			this.ignoredHosts = evt.data.hosts;
 			console.log('setIgnoreHosts', this.ignoredHosts);
@@ -67,7 +74,26 @@ export class BundleCache {
 		}
 	}
 
-	getInstall(bundle: string, version: string) {
+	/**
+	 * 是否正在安装中
+	 * @param bundle
+	 * @param version
+	 * @returns
+	 */
+	getIsInstalling(bundle: string, version: string) {
+		if (this.installBundles.indexOf(bundle) !== -1) {
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * 是否已经安装了某个bundle版本
+	 * @param bundle
+	 * @param version
+	 * @returns
+	 */
+	getInstalled(bundle: string, version: string) {
 		return new Promise<any>((resolve, reject) => {
 			caches
 				.open(this.installTagCacheName)
@@ -113,12 +139,21 @@ export class BundleCache {
 		let bundle = evt.data.bundle;
 		let version = evt.data.version;
 
-		this.getInstall(bundle, version).then((result) => {
+		if (this.getIsInstalling(bundle, version)) {
+			console.log('bundle is installing', bundle);
+			return;
+		}
+
+		this.installBundles.push(bundle);
+
+		this.getInstalled(bundle, version).then((result) => {
 			if (!result) {
 				let url = `assets/${bundle}.zip`;
 				if (version) {
 					url = `assets/${bundle}.${version}.zip`;
 				}
+				console.time(`${bundle} fetch`);
+				console.log(`${bundle} fetch start`);
 				fetch(url).then((response) => {
 					if (!response.ok) {
 						this.notifyBundleInstallError(evt, bundle, 'fetch error');
@@ -146,6 +181,9 @@ export class BundleCache {
 									buffer.set(chunk, position);
 									position += chunk.length;
 								}
+								that.notifyBundleInstallProgress(evt, bundle, that.downloadProgress + that.connectProgress);
+								console.log(`${bundle} fetch end`);
+								console.timeEnd(`${bundle} fetch`);
 								// 读取完成，处理 buffer
 								that.saveBundle(evt, buffer, bundle, version);
 								return;
@@ -174,6 +212,8 @@ export class BundleCache {
 
 	saveBundle(evt: ExtendableMessageEvent, buffer: Uint8Array, bundle: string, version: string) {
 		return new Promise<void>((resolve, reject) => {
+			console.time(`${bundle} unzip`);
+			console.log(`${bundle} unzip start`);
 			// @ts-ignore
 			let zipObj: JSZip = new JSZip();
 			zipObj
@@ -185,6 +225,8 @@ export class BundleCache {
 							// console.log('unzipEntry done', bundle);
 							this.saveInstall(bundle, version);
 							this.notifyBundleInstallDone(evt, bundle);
+							console.log(`${bundle} unzip end`);
+							console.timeEnd(`${bundle} unzip`);
 							resolve();
 						})
 						.catch((error) => {
@@ -271,6 +313,7 @@ export class BundleCache {
 
 	notifyBundleInstallProgress(evt: ExtendableMessageEvent, bundle: string, progress: number) {
 		if (evt.source) {
+			// console.log('notifyBundleInstallProgress', bundle, progress);
 			evt.source.postMessage({
 				what: 'bundleInstallProgress',
 				progress: progress,
@@ -280,6 +323,9 @@ export class BundleCache {
 	}
 
 	notifyBundleInstallDone(evt: ExtendableMessageEvent, bundle: string) {
+		// 删除安装列表中的bundle
+		this.installBundles = this.installBundles.filter((b) => b !== bundle);
+
 		if (evt.source) {
 			evt.source.postMessage({
 				what: 'bundleInstallDone',
@@ -289,6 +335,9 @@ export class BundleCache {
 	}
 
 	notifyBundleInstallError(evt: ExtendableMessageEvent, bundle: string, error?: string) {
+		// 删除安装列表中的bundle
+		this.installBundles = this.installBundles.filter((b) => b !== bundle);
+
 		if (evt.source) {
 			evt.source.postMessage({
 				what: 'bundleInstallError',
@@ -324,28 +373,35 @@ export class BundleCache {
 	match(request: Request) {
 		// Get请求才缓存
 		if (request.method === 'GET') {
-			// 获取基础URL（去除参数、hash和index.html）
-			const u = new URL(request.url);
-			const hrefUrl = new URL(this.href);
-			if (u.origin === hrefUrl.origin && u.pathname === hrefUrl.pathname) {
-				console.log('origin and pathname same');
+			try {
+				if (!this.href) {
+					console.log('href not set', this.href);
+					return false;
+				}
+				const u = new URL(request.url);
+				const hrefUrl = new URL(this.href);
+				if (u.origin === hrefUrl.origin && u.pathname === hrefUrl.pathname) {
+					console.log('origin and pathname same');
+					return false;
+				}
+				let host = u.origin;
+				if (this.ignoredHosts.includes(host)) {
+					console.log('ignored host', host);
+					return false;
+				}
+				// console.log('cache match', request.url);
+				return true;
+			} catch (error) {
+				console.log('match error', error);
 				return false;
 			}
-			let host = u.origin;
-			if (this.ignoredHosts.includes(host)) {
-				console.log('ignored host', host);
-				return false;
-			}
-
-			console.log('cache match', request.url);
-			return true;
 		}
 
 		return false;
 	}
 
 	onFetch(request: Request): Promise<Response> | null {
-		console.log('onFetch', request.url);
+		// console.log('onFetch', request.url);
 		if (!this.match(request)) {
 			return null;
 		} else {
@@ -357,7 +413,7 @@ export class BundleCache {
 							.match(request)
 							.then((res) => {
 								if (res) {
-									console.log('cache hit', request.url, res.headers.get('Content-Type'));
+									// console.log('cache hit', request.url, res.headers.get('Content-Type'));
 									resolve(res);
 								} else {
 									fetch(request).then((res) => {
