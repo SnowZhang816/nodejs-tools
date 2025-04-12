@@ -49,6 +49,8 @@ export class BundleCache {
 	// 正在加载的bundle列表
 	installBundles: string[] = [];
 
+	notifySources: Map<string, any[]> = new Map();
+
 	onMessage(evt: ExtendableMessageEvent) {
 		if (evt.data.what === 'installBundle') {
 			console.log('installBundle', evt);
@@ -141,6 +143,12 @@ export class BundleCache {
 
 		if (this.getIsInstalling(bundle, version)) {
 			console.log('bundle is installing', bundle);
+			let sources = this.notifySources.get(bundle);
+			if (sources) {
+				sources.push(evt.source);
+			} else {
+				this.notifySources.set(bundle, [evt.source]);
+			}
 			return;
 		}
 
@@ -224,9 +232,9 @@ export class BundleCache {
 						.then(() => {
 							// console.log('unzipEntry done', bundle);
 							this.saveInstall(bundle, version);
-							this.notifyBundleInstallDone(evt, bundle);
 							console.log(`${bundle} unzip end`);
 							console.timeEnd(`${bundle} unzip`);
+							this.notifyBundleInstallDone(evt, bundle);
 							resolve();
 						})
 						.catch((error) => {
@@ -320,18 +328,47 @@ export class BundleCache {
 				bundle,
 			});
 		}
+
+		let sources = this.notifySources.get(bundle);
+		if (sources) {
+			for (let i = 0; i < sources.length; i++) {
+				let source = sources[i];
+				if (source && source.postMessage) {
+					source.postMessage({
+						what: 'bundleInstallProgress',
+						progress: progress,
+						bundle,
+					});
+				}
+			}
+		}
 	}
 
 	notifyBundleInstallDone(evt: ExtendableMessageEvent, bundle: string) {
 		// 删除安装列表中的bundle
 		this.installBundles = this.installBundles.filter((b) => b !== bundle);
-
+		console.log('notifyBundleInstallDone1', bundle);
 		if (evt.source) {
 			evt.source.postMessage({
 				what: 'bundleInstallDone',
 				bundle,
 			});
 		}
+
+		let sources = this.notifySources.get(bundle);
+		if (sources) {
+			for (let i = 0; i < sources.length; i++) {
+				let source = sources[i];
+				if (source && source.postMessage) {
+					source.postMessage({
+						what: 'bundleInstallDone',
+						bundle,
+					});
+				}
+			}
+		}
+
+		this.notifySources.delete(bundle);
 	}
 
 	notifyBundleInstallError(evt: ExtendableMessageEvent, bundle: string, error?: string) {
@@ -345,6 +382,21 @@ export class BundleCache {
 				error,
 			});
 		}
+
+		let sources = this.notifySources.get(bundle);
+		if (sources) {
+			for (let i = 0; i < sources.length; i++) {
+				let source = sources[i];
+				if (source && source.postMessage) {
+					source.postMessage({
+						what: 'bundleInstallError',
+						bundle,
+					});
+				}
+			}
+		}
+
+		this.notifySources.delete(bundle);
 	}
 
 	cacheResponse(request: Request, response: Response) {
@@ -379,6 +431,20 @@ export class BundleCache {
 					return false;
 				}
 				const u = new URL(request.url);
+				const segments = u.pathname.split('/');
+				const filename = segments[segments.length - 1];
+				console.log('filename:', filename);
+				const hasExt = /\.\w+$/.test(filename);
+				if (!hasExt) {
+					console.log('no extension', request.url);
+					return false;
+				}
+
+				if (filename.endsWith('vconsole.js')) {
+					console.log('ignore vconsole');
+					return false;
+				}
+
 				const hrefUrl = new URL(this.href);
 				if (u.origin === hrefUrl.origin && u.pathname === hrefUrl.pathname) {
 					console.log('origin and pathname same');
@@ -401,7 +467,7 @@ export class BundleCache {
 	}
 
 	onFetch(request: Request): Promise<Response> | null {
-		// console.log('onFetch', request.url);
+		console.log('onFetch', request.url);
 		if (!this.match(request)) {
 			return null;
 		} else {
