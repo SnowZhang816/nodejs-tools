@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Document</title>
+	</head>
+	<body>
+		<script>
+			function aaa() {
+				function test2() {
+					new Promise((resolve, reject) => {
+						setTimeout(() => {
+							if (false) {
+								resolve();
+							}
+						}, 10000);
+					});
+				}
+
+				function test() {
+					let a = 1;
+					let b = 2;
+					test2().then(() => {
+						let d = a + b;
+					});
+				}
+			}
+		</script>
+		<button id="btn">点击</button>
+	</body>
+</html>
