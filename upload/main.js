@@ -9,6 +9,7 @@ const config = {
 	password: 'gxfc', // 登录密码
 };
 const args = process.argv.slice(2);
+console.log('args', args);
 
 /** 上传目录 */
 let localPath = 'D:\\JenkensWork\\out';
