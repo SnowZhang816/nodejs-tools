@@ -44,7 +44,7 @@ class Client {
 			let cmd = message.cmd;
 			console.log('收到客户端消息头', message);
 
-			let reqData = message.bytes;
+			let reqData = message.data;
 			let handler = this.cmdHandlers[cmd];
 			if (handler) {
 				handler(reqData, cmd, message.seq);
@@ -145,7 +145,7 @@ class Client {
 			let dataBuf = Base.Message.encode({
 				seq: seq,
 				cmd: cmd,
-				bytes: data
+				data: data
 			}).finish();
 			let buf = new ArrayBuffer(dataBuf.length);
 			let uint8Array = new Uint8Array(buf);

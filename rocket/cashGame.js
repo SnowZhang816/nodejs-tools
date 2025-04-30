@@ -115,7 +115,7 @@ class CashGame {
 			errMsg: errMsg,
 			userId: client.getUserId(),
 			gameId: client.gameId,
-			bytes: Game1006.Game1006Info.encode(response).finish(),
+			data: Game1006.Game1006Info.encode(response).finish(),
 		});
 
 		let dataBuf = msgDecoder.encode(Base.Cmd.EnterGameResp, data);
@@ -452,7 +452,7 @@ class CashGame {
 		let databuf = msgDecoder.encode(Game1006.Cmd.NotifyFlyInfo, response);
 		if (databuf) {
 			let info = msgDecoder.decode(Game1006.Cmd.NotifyFlyInfo, databuf);
-			console.log('推送飞行信息', info);
+			// console.log('推送飞行信息', info);
 			this.clients.forEach(client => {
 				client.send(databuf, Game1006.Cmd.NotifyFlyInfo)
 			});
@@ -486,8 +486,8 @@ class CashGame {
 		this.startTime = Math.floor(Date.now() / 1000) + times;
 		this.notifyCutDown(times, this.startTime);
 
-		let startId = MathUtils.random(100000, 999999, true)
-		let robotCount = MathUtils.random(30, 30);
+		let startId = MathUtils.random(10000000, 99999999, true)
+		let robotCount = MathUtils.random(1, 30);
 		for (let i = 0; i < robotCount; ++i) {
 			this.addRobot(startId);
 			startId++;
@@ -519,7 +519,7 @@ class CashGame {
 		mul = parseFloat((mul).toFixed(2)) * 100;
 		this.resultMultiplier = mul
 
-		this.resultMultiplier = 50 * 100;
+		// this.resultMultiplier = 50 * 100;
 		this.multiplier = 100;
 		this.step = 2;
 

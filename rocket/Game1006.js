@@ -65,9 +65,12 @@ var $protobuf = require("./protobuf");
          * @property {number} Game1006CodeBetFailed=10002 Game1006CodeBetFailed value
          * @property {number} Game1006CodeNotInBet=10003 Game1006CodeNotInBet value
          * @property {number} Game1006CodeBetCoinInvalid=10004 Game1006CodeBetCoinInvalid value
-         * @property {number} Game1006CodeNotInFly=10005 Game1006CodeNotInFly value
-         * @property {number} Game1006CodeNotBet=10006 Game1006CodeNotBet value
-         * @property {number} Game1006CodeAlreadyCashOut=10007 Game1006CodeAlreadyCashOut value
+         * @property {number} Game1006CodeNotInCancel=10005 Game1006CodeNotInCancel value
+         * @property {number} Game1006CodeNotInFly=10006 Game1006CodeNotInFly value
+         * @property {number} Game1006CodeNotInCashOut=10007 Game1006CodeNotInCashOut value
+         * @property {number} Game1006CodeNotBet=10008 Game1006CodeNotBet value
+         * @property {number} Game1006CodeUserBetInfoError=10009 Game1006CodeUserBetInfoError value
+         * @property {number} Game1006CodeAlreadyCashOut=10010 Game1006CodeAlreadyCashOut value
          */
         Game1006.Game1006Code = (function () {
             var valuesById = {}, values = Object.create(valuesById);
@@ -75,9 +78,12 @@ var $protobuf = require("./protobuf");
             values[valuesById[10002] = "Game1006CodeBetFailed"] = 10002;
             values[valuesById[10003] = "Game1006CodeNotInBet"] = 10003;
             values[valuesById[10004] = "Game1006CodeBetCoinInvalid"] = 10004;
-            values[valuesById[10005] = "Game1006CodeNotInFly"] = 10005;
-            values[valuesById[10006] = "Game1006CodeNotBet"] = 10006;
-            values[valuesById[10007] = "Game1006CodeAlreadyCashOut"] = 10007;
+            values[valuesById[10005] = "Game1006CodeNotInCancel"] = 10005;
+            values[valuesById[10006] = "Game1006CodeNotInFly"] = 10006;
+            values[valuesById[10007] = "Game1006CodeNotInCashOut"] = 10007;
+            values[valuesById[10008] = "Game1006CodeNotBet"] = 10008;
+            values[valuesById[10009] = "Game1006CodeUserBetInfoError"] = 10009;
+            values[valuesById[10010] = "Game1006CodeAlreadyCashOut"] = 10010;
             return values;
         })();
 
@@ -220,7 +226,7 @@ var $protobuf = require("./protobuf");
              * @interface IGame1006Info
              * @property {Game1006.Game1006Status} gameStatus Game1006Info gameStatus
              * @property {number} playerCount Game1006Info playerCount
-             * @property {Array.<Game1006.IBetUer>|null} [betUsers] Game1006Info betUsers
+             * @property {Array.<Game1006.IBetUser>|null} [betUsers] Game1006Info betUsers
              * @property {Array.<Game1006.ICashOutUser>|null} [cashOutUsers] Game1006Info cashOutUsers
              * @property {number} cutDown Game1006Info cutDown
              * @property {number} startTime Game1006Info startTime
@@ -265,7 +271,7 @@ var $protobuf = require("./protobuf");
 
             /**
              * Game1006Info betUsers.
-             * @member {Array.<Game1006.IBetUer>} betUsers
+             * @member {Array.<Game1006.IBetUser>} betUsers
              * @memberof Game1006.Game1006Info
              * @instance
              */
@@ -347,7 +353,7 @@ var $protobuf = require("./protobuf");
                 w.uint32(16).int32(m.playerCount);
                 if (m.betUsers != null && m.betUsers.length) {
                     for (var i = 0; i < m.betUsers.length; ++i)
-                        $root.Game1006.BetUer.encode(m.betUsers[i], w.uint32(26).fork()).ldelim();
+                        $root.Game1006.BetUser.encode(m.betUsers[i], w.uint32(26).fork()).ldelim();
                 }
                 if (m.cashOutUsers != null && m.cashOutUsers.length) {
                     for (var i = 0; i < m.cashOutUsers.length; ++i)
@@ -393,7 +399,7 @@ var $protobuf = require("./protobuf");
                         case 3:
                             if (!(m.betUsers && m.betUsers.length))
                                 m.betUsers = [];
-                            m.betUsers.push($root.Game1006.BetUer.decode(r, r.uint32()));
+                            m.betUsers.push($root.Game1006.BetUser.decode(r, r.uint32()));
                             break;
                         case 4:
                             if (!(m.cashOutUsers && m.cashOutUsers.length))
@@ -729,7 +735,7 @@ var $protobuf = require("./protobuf");
              * @memberof Game1006
              * @interface IBetResp
              * @property {Base.Code|null} [code] BetResp code
-             * @property {string|null} [errMsg] BetResp errMsg
+             * @property {string|null} [msg] BetResp msg
              */
 
             /**
@@ -756,12 +762,12 @@ var $protobuf = require("./protobuf");
             BetResp.prototype.code = 0;
 
             /**
-             * BetResp errMsg.
-             * @member {string} errMsg
+             * BetResp msg.
+             * @member {string} msg
              * @memberof Game1006.BetResp
              * @instance
              */
-            BetResp.prototype.errMsg = "";
+            BetResp.prototype.msg = "";
 
             /**
              * Creates a new BetResp instance using the specified properties.
@@ -789,8 +795,8 @@ var $protobuf = require("./protobuf");
                     w = $Writer.create();
                 if (m.code != null && Object.hasOwnProperty.call(m, "code"))
                     w.uint32(8).int32(m.code);
-                if (m.errMsg != null && Object.hasOwnProperty.call(m, "errMsg"))
-                    w.uint32(18).string(m.errMsg);
+                if (m.msg != null && Object.hasOwnProperty.call(m, "msg"))
+                    w.uint32(18).string(m.msg);
                 return w;
             };
 
@@ -818,7 +824,7 @@ var $protobuf = require("./protobuf");
                             m.code = r.int32();
                             break;
                         case 2:
-                            m.errMsg = r.string();
+                            m.msg = r.string();
                             break;
                         default:
                             r.skipType(t & 7);
@@ -934,7 +940,7 @@ var $protobuf = require("./protobuf");
              * @memberof Game1006
              * @interface ICancelBetResp
              * @property {Base.Code|null} [code] CancelBetResp code
-             * @property {string|null} [errMsg] CancelBetResp errMsg
+             * @property {string|null} [msg] CancelBetResp msg
              */
 
             /**
@@ -961,12 +967,12 @@ var $protobuf = require("./protobuf");
             CancelBetResp.prototype.code = 0;
 
             /**
-             * CancelBetResp errMsg.
-             * @member {string} errMsg
+             * CancelBetResp msg.
+             * @member {string} msg
              * @memberof Game1006.CancelBetResp
              * @instance
              */
-            CancelBetResp.prototype.errMsg = "";
+            CancelBetResp.prototype.msg = "";
 
             /**
              * Creates a new CancelBetResp instance using the specified properties.
@@ -994,8 +1000,8 @@ var $protobuf = require("./protobuf");
                     w = $Writer.create();
                 if (m.code != null && Object.hasOwnProperty.call(m, "code"))
                     w.uint32(8).int32(m.code);
-                if (m.errMsg != null && Object.hasOwnProperty.call(m, "errMsg"))
-                    w.uint32(18).string(m.errMsg);
+                if (m.msg != null && Object.hasOwnProperty.call(m, "msg"))
+                    w.uint32(18).string(m.msg);
                 return w;
             };
 
@@ -1023,7 +1029,7 @@ var $protobuf = require("./protobuf");
                             m.code = r.int32();
                             break;
                         case 2:
-                            m.errMsg = r.string();
+                            m.msg = r.string();
                             break;
                         default:
                             r.skipType(t & 7);
@@ -1139,7 +1145,7 @@ var $protobuf = require("./protobuf");
              * @memberof Game1006
              * @interface ICashOutResp
              * @property {Base.Code|null} [code] CashOutResp code
-             * @property {string|null} [errMsg] CashOutResp errMsg
+             * @property {string|null} [msg] CashOutResp msg
              * @property {number} betIndex CashOutResp betIndex
              * @property {Array.<number>|null} [multiplier] CashOutResp multiplier
              * @property {number|Long} winCoin CashOutResp winCoin
@@ -1170,12 +1176,12 @@ var $protobuf = require("./protobuf");
             CashOutResp.prototype.code = 0;
 
             /**
-             * CashOutResp errMsg.
-             * @member {string} errMsg
+             * CashOutResp msg.
+             * @member {string} msg
              * @memberof Game1006.CashOutResp
              * @instance
              */
-            CashOutResp.prototype.errMsg = "";
+            CashOutResp.prototype.msg = "";
 
             /**
              * CashOutResp betIndex.
@@ -1227,8 +1233,8 @@ var $protobuf = require("./protobuf");
                     w = $Writer.create();
                 if (m.code != null && Object.hasOwnProperty.call(m, "code"))
                     w.uint32(8).int32(m.code);
-                if (m.errMsg != null && Object.hasOwnProperty.call(m, "errMsg"))
-                    w.uint32(18).string(m.errMsg);
+                if (m.msg != null && Object.hasOwnProperty.call(m, "msg"))
+                    w.uint32(18).string(m.msg);
                 w.uint32(24).int32(m.betIndex);
                 if (m.multiplier != null && m.multiplier.length) {
                     for (var i = 0; i < m.multiplier.length; ++i)
@@ -1262,7 +1268,7 @@ var $protobuf = require("./protobuf");
                             m.code = r.int32();
                             break;
                         case 2:
-                            m.errMsg = r.string();
+                            m.msg = r.string();
                             break;
                         case 3:
                             m.betIndex = r.int32();
@@ -1398,7 +1404,7 @@ var $protobuf = require("./protobuf");
              * @memberof Game1006
              * @interface IGetBetHistoryResp
              * @property {Base.Code|null} [code] GetBetHistoryResp code
-             * @property {string|null} [errMsg] GetBetHistoryResp errMsg
+             * @property {string|null} [msg] GetBetHistoryResp msg
              * @property {Array.<Game1006.IUserBetHistory>|null} [userBetHistory] GetBetHistoryResp userBetHistory
              */
 
@@ -1427,12 +1433,12 @@ var $protobuf = require("./protobuf");
             GetBetHistoryResp.prototype.code = 0;
 
             /**
-             * GetBetHistoryResp errMsg.
-             * @member {string} errMsg
+             * GetBetHistoryResp msg.
+             * @member {string} msg
              * @memberof Game1006.GetBetHistoryResp
              * @instance
              */
-            GetBetHistoryResp.prototype.errMsg = "";
+            GetBetHistoryResp.prototype.msg = "";
 
             /**
              * GetBetHistoryResp userBetHistory.
@@ -1468,8 +1474,8 @@ var $protobuf = require("./protobuf");
                     w = $Writer.create();
                 if (m.code != null && Object.hasOwnProperty.call(m, "code"))
                     w.uint32(8).int32(m.code);
-                if (m.errMsg != null && Object.hasOwnProperty.call(m, "errMsg"))
-                    w.uint32(18).string(m.errMsg);
+                if (m.msg != null && Object.hasOwnProperty.call(m, "msg"))
+                    w.uint32(18).string(m.msg);
                 if (m.userBetHistory != null && m.userBetHistory.length) {
                     for (var i = 0; i < m.userBetHistory.length; ++i)
                         $root.Game1006.UserBetHistory.encode(m.userBetHistory[i], w.uint32(26).fork()).ldelim();
@@ -1501,7 +1507,7 @@ var $protobuf = require("./protobuf");
                             m.code = r.int32();
                             break;
                         case 2:
-                            m.errMsg = r.string();
+                            m.msg = r.string();
                             break;
                         case 3:
                             if (!(m.userBetHistory && m.userBetHistory.length))
@@ -1519,26 +1525,26 @@ var $protobuf = require("./protobuf");
             return GetBetHistoryResp;
         })();
 
-        Game1006.BetUer = (function () {
+        Game1006.BetUser = (function () {
 
             /**
-             * Properties of a BetUer.
+             * Properties of a BetUser.
              * @memberof Game1006
-             * @interface IBetUer
-             * @property {string} userId BetUer userId
-             * @property {number} betIndex BetUer betIndex
-             * @property {number|Long} betCoin BetUer betCoin
+             * @interface IBetUser
+             * @property {string} userId BetUser userId
+             * @property {number} betIndex BetUser betIndex
+             * @property {number|Long} betCoin BetUser betCoin
              */
 
             /**
-             * Constructs a new BetUer.
+             * Constructs a new BetUser.
              * @memberof Game1006
-             * @classdesc Represents a BetUer.
-             * @implements IBetUer
+             * @classdesc Represents a BetUser.
+             * @implements IBetUser
              * @constructor
-             * @param {Game1006.IBetUer=} [p] Properties to set
+             * @param {Game1006.IBetUser=} [p] Properties to set
              */
-            function BetUer(p) {
+            function BetUser(p) {
                 if (p)
                     for (var ks = Object.keys(p), i = 0; i < ks.length; ++i)
                         if (p[ks[i]] != null)
@@ -1546,51 +1552,51 @@ var $protobuf = require("./protobuf");
             }
 
             /**
-             * BetUer userId.
+             * BetUser userId.
              * @member {string} userId
-             * @memberof Game1006.BetUer
+             * @memberof Game1006.BetUser
              * @instance
              */
-            BetUer.prototype.userId = "";
+            BetUser.prototype.userId = "";
 
             /**
-             * BetUer betIndex.
+             * BetUser betIndex.
              * @member {number} betIndex
-             * @memberof Game1006.BetUer
+             * @memberof Game1006.BetUser
              * @instance
              */
-            BetUer.prototype.betIndex = 0;
+            BetUser.prototype.betIndex = 0;
 
             /**
-             * BetUer betCoin.
+             * BetUser betCoin.
              * @member {number|Long} betCoin
-             * @memberof Game1006.BetUer
+             * @memberof Game1006.BetUser
              * @instance
              */
-            BetUer.prototype.betCoin = $util.Long ? $util.Long.fromBits(0, 0, false) : 0;
+            BetUser.prototype.betCoin = $util.Long ? $util.Long.fromBits(0, 0, false) : 0;
 
             /**
-             * Creates a new BetUer instance using the specified properties.
+             * Creates a new BetUser instance using the specified properties.
              * @function create
-             * @memberof Game1006.BetUer
+             * @memberof Game1006.BetUser
              * @static
-             * @param {Game1006.IBetUer=} [properties] Properties to set
-             * @returns {Game1006.BetUer} BetUer instance
+             * @param {Game1006.IBetUser=} [properties] Properties to set
+             * @returns {Game1006.BetUser} BetUser instance
              */
-            BetUer.create = function create(properties) {
-                return new BetUer(properties);
+            BetUser.create = function create(properties) {
+                return new BetUser(properties);
             };
 
             /**
-             * Encodes the specified BetUer message. Does not implicitly {@link Game1006.BetUer.verify|verify} messages.
+             * Encodes the specified BetUser message. Does not implicitly {@link Game1006.BetUser.verify|verify} messages.
              * @function encode
-             * @memberof Game1006.BetUer
+             * @memberof Game1006.BetUser
              * @static
-             * @param {Game1006.IBetUer} m BetUer message or plain object to encode
+             * @param {Game1006.IBetUser} m BetUser message or plain object to encode
              * @param {$protobuf.Writer} [w] Writer to encode to
              * @returns {$protobuf.Writer} Writer
              */
-            BetUer.encode = function encode(m, w) {
+            BetUser.encode = function encode(m, w) {
                 if (!w)
                     w = $Writer.create();
                 w.uint32(10).string(m.userId);
@@ -1600,22 +1606,22 @@ var $protobuf = require("./protobuf");
             };
 
             /**
-             * Decodes a BetUer message from the specified reader or buffer.
+             * Decodes a BetUser message from the specified reader or buffer.
              * @function decode
-             * @memberof Game1006.BetUer
+             * @memberof Game1006.BetUser
              * @static
              * @param {$protobuf.Reader|Uint8Array} r Reader or buffer to decode from
              * @param {number} [l] Message length if known beforehand
-             * @returns {Game1006.BetUer} BetUer
+             * @returns {Game1006.BetUser} BetUser
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            BetUer.decode = function decode(r, l) {
+            BetUser.decode = function decode(r, l) {
                 if (!r)
                     return r;
                 if (!(r instanceof $Reader))
                     r = $Reader.create(r);
-                var c = l === undefined ? r.len : r.pos + l, m = new $root.Game1006.BetUer();
+                var c = l === undefined ? r.len : r.pos + l, m = new $root.Game1006.BetUser();
                 while (r.pos < c) {
                     var t = r.uint32();
                     switch (t >>> 3) {
@@ -1642,7 +1648,7 @@ var $protobuf = require("./protobuf");
                 return m;
             };
 
-            return BetUer;
+            return BetUser;
         })();
 
         Game1006.CancelBetUser = (function () {
@@ -1901,7 +1907,7 @@ var $protobuf = require("./protobuf");
              * Properties of a NotifyBet.
              * @memberof Game1006
              * @interface INotifyBet
-             * @property {Array.<Game1006.IBetUer>|null} [betUsers] NotifyBet betUsers
+             * @property {Array.<Game1006.IBetUser>|null} [betUsers] NotifyBet betUsers
              */
 
             /**
@@ -1922,7 +1928,7 @@ var $protobuf = require("./protobuf");
 
             /**
              * NotifyBet betUsers.
-             * @member {Array.<Game1006.IBetUer>} betUsers
+             * @member {Array.<Game1006.IBetUser>} betUsers
              * @memberof Game1006.NotifyBet
              * @instance
              */
@@ -1954,7 +1960,7 @@ var $protobuf = require("./protobuf");
                     w = $Writer.create();
                 if (m.betUsers != null && m.betUsers.length) {
                     for (var i = 0; i < m.betUsers.length; ++i)
-                        $root.Game1006.BetUer.encode(m.betUsers[i], w.uint32(10).fork()).ldelim();
+                        $root.Game1006.BetUser.encode(m.betUsers[i], w.uint32(10).fork()).ldelim();
                 }
                 return w;
             };
@@ -1982,7 +1988,7 @@ var $protobuf = require("./protobuf");
                         case 1:
                             if (!(m.betUsers && m.betUsers.length))
                                 m.betUsers = [];
-                            m.betUsers.push($root.Game1006.BetUer.decode(r, r.uint32()));
+                            m.betUsers.push($root.Game1006.BetUser.decode(r, r.uint32()));
                             break;
                         default:
                             r.skipType(t & 7);
@@ -2101,6 +2107,7 @@ var $protobuf = require("./protobuf");
              * Properties of a NotifyPrepare.
              * @memberof Game1006
              * @interface INotifyPrepare
+             * @property {number|null} [prepare] NotifyPrepare prepare
              */
 
             /**
@@ -2117,6 +2124,14 @@ var $protobuf = require("./protobuf");
                         if (p[ks[i]] != null)
                             this[ks[i]] = p[ks[i]];
             }
+
+            /**
+             * NotifyPrepare prepare.
+             * @member {number} prepare
+             * @memberof Game1006.NotifyPrepare
+             * @instance
+             */
+            NotifyPrepare.prototype.prepare = 0;
 
             /**
              * Creates a new NotifyPrepare instance using the specified properties.
@@ -2142,6 +2157,8 @@ var $protobuf = require("./protobuf");
             NotifyPrepare.encode = function encode(m, w) {
                 if (!w)
                     w = $Writer.create();
+                if (m.prepare != null && Object.hasOwnProperty.call(m, "prepare"))
+                    w.uint32(8).int32(m.prepare);
                 return w;
             };
 
@@ -2165,6 +2182,9 @@ var $protobuf = require("./protobuf");
                 while (r.pos < c) {
                     var t = r.uint32();
                     switch (t >>> 3) {
+                        case 1:
+                            m.prepare = r.int32();
+                            break;
                         default:
                             r.skipType(t & 7);
                             break;
@@ -2517,7 +2537,6 @@ var $protobuf = require("./protobuf");
 
     return $root;
 })(protobuf).Game1006;
-
 module.exports = {
     Game1006: global.Game1006
 }

@@ -49,6 +49,7 @@ var $protobuf = require("./protobuf");
          * @property {number} AlreadyInGame=10004 AlreadyInGame value
          * @property {number} GameNotExit=10005 GameNotExit value
          * @property {number} InnerError=10006 InnerError value
+         * @property {number} GetUserInfoError=10007 GetUserInfoError value
          */
         Base.Code = (function () {
             var valuesById = {}, values = Object.create(valuesById);
@@ -59,6 +60,7 @@ var $protobuf = require("./protobuf");
             values[valuesById[10004] = "AlreadyInGame"] = 10004;
             values[valuesById[10005] = "GameNotExit"] = 10005;
             values[valuesById[10006] = "InnerError"] = 10006;
+            values[valuesById[10007] = "GetUserInfoError"] = 10007;
             return values;
         })();
 
@@ -180,7 +182,7 @@ var $protobuf = require("./protobuf");
              * @memberof Base
              * @interface ILoginResp
              * @property {Base.Code|null} [code] LoginResp code
-             * @property {string|null} [errMsg] LoginResp errMsg
+             * @property {string|null} [msg] LoginResp msg
              * @property {string|null} [userId] LoginResp userId
              */
 
@@ -208,12 +210,12 @@ var $protobuf = require("./protobuf");
             LoginResp.prototype.code = 0;
 
             /**
-             * LoginResp errMsg.
-             * @member {string} errMsg
+             * LoginResp msg.
+             * @member {string} msg
              * @memberof Base.LoginResp
              * @instance
              */
-            LoginResp.prototype.errMsg = "";
+            LoginResp.prototype.msg = "";
 
             /**
              * LoginResp userId.
@@ -249,8 +251,8 @@ var $protobuf = require("./protobuf");
                     w = $Writer.create();
                 if (m.code != null && Object.hasOwnProperty.call(m, "code"))
                     w.uint32(8).int32(m.code);
-                if (m.errMsg != null && Object.hasOwnProperty.call(m, "errMsg"))
-                    w.uint32(18).string(m.errMsg);
+                if (m.msg != null && Object.hasOwnProperty.call(m, "msg"))
+                    w.uint32(18).string(m.msg);
                 if (m.userId != null && Object.hasOwnProperty.call(m, "userId"))
                     w.uint32(26).string(m.userId);
                 return w;
@@ -280,7 +282,7 @@ var $protobuf = require("./protobuf");
                             m.code = r.int32();
                             break;
                         case 2:
-                            m.errMsg = r.string();
+                            m.msg = r.string();
                             break;
                         case 3:
                             m.userId = r.string();
@@ -414,10 +416,10 @@ var $protobuf = require("./protobuf");
              * @memberof Base
              * @interface IEnterGameResp
              * @property {Base.Code|null} [code] EnterGameResp code
-             * @property {string|null} [errMsg] EnterGameResp errMsg
+             * @property {string|null} [msg] EnterGameResp msg
              * @property {string} userId EnterGameResp userId
              * @property {number} gameId EnterGameResp gameId
-             * @property {Uint8Array|null} [bytes] EnterGameResp bytes
+             * @property {Uint8Array|null} [data] EnterGameResp data
              */
 
             /**
@@ -444,12 +446,12 @@ var $protobuf = require("./protobuf");
             EnterGameResp.prototype.code = 0;
 
             /**
-             * EnterGameResp errMsg.
-             * @member {string} errMsg
+             * EnterGameResp msg.
+             * @member {string} msg
              * @memberof Base.EnterGameResp
              * @instance
              */
-            EnterGameResp.prototype.errMsg = "";
+            EnterGameResp.prototype.msg = "";
 
             /**
              * EnterGameResp userId.
@@ -468,12 +470,12 @@ var $protobuf = require("./protobuf");
             EnterGameResp.prototype.gameId = 0;
 
             /**
-             * EnterGameResp bytes.
-             * @member {Uint8Array} bytes
+             * EnterGameResp data.
+             * @member {Uint8Array} data
              * @memberof Base.EnterGameResp
              * @instance
              */
-            EnterGameResp.prototype.bytes = null;
+            EnterGameResp.prototype.data = null;
 
             /**
              * Creates a new EnterGameResp instance using the specified properties.
@@ -501,12 +503,12 @@ var $protobuf = require("./protobuf");
                     w = $Writer.create();
                 if (m.code != null && Object.hasOwnProperty.call(m, "code"))
                     w.uint32(8).int32(m.code);
-                if (m.errMsg != null && Object.hasOwnProperty.call(m, "errMsg"))
-                    w.uint32(18).string(m.errMsg);
+                if (m.msg != null && Object.hasOwnProperty.call(m, "msg"))
+                    w.uint32(18).string(m.msg);
                 w.uint32(26).string(m.userId);
                 w.uint32(32).int32(m.gameId);
-                if (m.bytes != null && Object.hasOwnProperty.call(m, "bytes"))
-                    w.uint32(42).bytes(m.bytes);
+                if (m.data != null && Object.hasOwnProperty.call(m, "data"))
+                    w.uint32(42).bytes(m.data);
                 return w;
             };
 
@@ -534,7 +536,7 @@ var $protobuf = require("./protobuf");
                             m.code = r.int32();
                             break;
                         case 2:
-                            m.errMsg = r.string();
+                            m.msg = r.string();
                             break;
                         case 3:
                             m.userId = r.string();
@@ -543,7 +545,7 @@ var $protobuf = require("./protobuf");
                             m.gameId = r.int32();
                             break;
                         case 5:
-                            m.bytes = r.bytes();
+                            m.data = r.bytes();
                             break;
                         default:
                             r.skipType(t & 7);
@@ -568,7 +570,7 @@ var $protobuf = require("./protobuf");
              * @interface IMessage
              * @property {number} seq Message seq
              * @property {number} cmd Message cmd
-             * @property {Uint8Array|null} [bytes] Message bytes
+             * @property {Uint8Array|null} [data] Message data
              */
 
             /**
@@ -603,12 +605,12 @@ var $protobuf = require("./protobuf");
             Message.prototype.cmd = 0;
 
             /**
-             * Message bytes.
-             * @member {Uint8Array} bytes
+             * Message data.
+             * @member {Uint8Array} data
              * @memberof Base.Message
              * @instance
              */
-            Message.prototype.bytes = null;
+            Message.prototype.data = null;
 
             /**
              * Creates a new Message instance using the specified properties.
@@ -636,8 +638,8 @@ var $protobuf = require("./protobuf");
                     w = $Writer.create();
                 w.uint32(8).int32(m.seq);
                 w.uint32(16).int32(m.cmd);
-                if (m.bytes != null && Object.hasOwnProperty.call(m, "bytes"))
-                    w.uint32(26).bytes(m.bytes);
+                if (m.data != null && Object.hasOwnProperty.call(m, "data"))
+                    w.uint32(26).bytes(m.data);
                 return w;
             };
 
@@ -668,7 +670,7 @@ var $protobuf = require("./protobuf");
                             m.cmd = r.int32();
                             break;
                         case 3:
-                            m.bytes = r.bytes();
+                            m.data = r.bytes();
                             break;
                         default:
                             r.skipType(t & 7);
