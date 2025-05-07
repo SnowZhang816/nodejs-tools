@@ -11,6 +11,8 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "fs-extra": "^11.3.0"
+    "fs-extra": "^11.3.0",
+    "sharp": "^0.34.1",
+    "webpjs": "^0.0.2"
   }
 }

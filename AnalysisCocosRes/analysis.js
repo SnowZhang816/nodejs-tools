@@ -12,7 +12,6 @@ class Analysis {
 			if (fs.statSync(bundlePath).isDirectory()) {
 				let bundle = file.split('.')[0];
 				this.analysisBundle(bundle, bundlePath);
-				break;
 			}
 		}
 	}
@@ -31,7 +30,7 @@ class Analysis {
 			}
 		}
 
-		console.log(this.bundles);
+		// console.log(this.bundles);
 	}
 
 	exportsAssets(destDir) {

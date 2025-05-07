@@ -1,6 +1,5 @@
 var $protobuf = require("./protobuf");
 
-
 (global).Game1006 = (function ($protobuf) {
     "use strict";
 
@@ -37,6 +36,8 @@ var $protobuf = require("./protobuf");
          * @property {number} NotifyStart=1006104 NotifyStart value
          * @property {number} NotifyBet=1006105 NotifyBet value
          * @property {number} NotifyCancelBet=1006106 NotifyCancelBet value
+         * @property {number} NotifyUserEnter=1006107 NotifyUserEnter value
+         * @property {number} NotifyUserLeave=1006108 NotifyUserLeave value
          */
         Game1006.Cmd = (function () {
             var valuesById = {}, values = Object.create(valuesById);
@@ -54,6 +55,8 @@ var $protobuf = require("./protobuf");
             values[valuesById[1006104] = "NotifyStart"] = 1006104;
             values[valuesById[1006105] = "NotifyBet"] = 1006105;
             values[valuesById[1006106] = "NotifyCancelBet"] = 1006106;
+            values[valuesById[1006107] = "NotifyUserEnter"] = 1006107;
+            values[valuesById[1006108] = "NotifyUserLeave"] = 1006108;
             return values;
         })();
 
@@ -225,11 +228,11 @@ var $protobuf = require("./protobuf");
              * @memberof Game1006
              * @interface IGame1006Info
              * @property {Game1006.Game1006Status} gameStatus Game1006Info gameStatus
-             * @property {number} playerCount Game1006Info playerCount
+             * @property {Array.<Game1006.IUserInfo>|null} [players] Game1006Info players
              * @property {Array.<Game1006.IBetUser>|null} [betUsers] Game1006Info betUsers
              * @property {Array.<Game1006.ICashOutUser>|null} [cashOutUsers] Game1006Info cashOutUsers
-             * @property {number} cutDown Game1006Info cutDown
-             * @property {number} startTime Game1006Info startTime
+             * @property {number|null} [cutDown] Game1006Info cutDown
+             * @property {number|null} [startTime] Game1006Info startTime
              * @property {string} roundHash Game1006Info roundHash
              * @property {number} multiplier Game1006Info multiplier
              * @property {Array.<Game1006.IHistory>|null} [history] Game1006Info history
@@ -244,6 +247,7 @@ var $protobuf = require("./protobuf");
              * @param {Game1006.IGame1006Info=} [p] Properties to set
              */
             function Game1006Info(p) {
+                this.players = [];
                 this.betUsers = [];
                 this.cashOutUsers = [];
                 this.history = [];
@@ -262,12 +266,12 @@ var $protobuf = require("./protobuf");
             Game1006Info.prototype.gameStatus = 0;
 
             /**
-             * Game1006Info playerCount.
-             * @member {number} playerCount
+             * Game1006Info players.
+             * @member {Array.<Game1006.IUserInfo>} players
              * @memberof Game1006.Game1006Info
              * @instance
              */
-            Game1006Info.prototype.playerCount = 0;
+            Game1006Info.prototype.players = $util.emptyArray;
 
             /**
              * Game1006Info betUsers.
@@ -350,7 +354,10 @@ var $protobuf = require("./protobuf");
                 if (!w)
                     w = $Writer.create();
                 w.uint32(8).int32(m.gameStatus);
-                w.uint32(16).int32(m.playerCount);
+                if (m.players != null && m.players.length) {
+                    for (var i = 0; i < m.players.length; ++i)
+                        $root.Game1006.UserInfo.encode(m.players[i], w.uint32(18).fork()).ldelim();
+                }
                 if (m.betUsers != null && m.betUsers.length) {
                     for (var i = 0; i < m.betUsers.length; ++i)
                         $root.Game1006.BetUser.encode(m.betUsers[i], w.uint32(26).fork()).ldelim();
@@ -359,8 +366,10 @@ var $protobuf = require("./protobuf");
                     for (var i = 0; i < m.cashOutUsers.length; ++i)
                         $root.Game1006.CashOutUser.encode(m.cashOutUsers[i], w.uint32(34).fork()).ldelim();
                 }
-                w.uint32(40).int32(m.cutDown);
-                w.uint32(48).int32(m.startTime);
+                if (m.cutDown != null && Object.hasOwnProperty.call(m, "cutDown"))
+                    w.uint32(40).int32(m.cutDown);
+                if (m.startTime != null && Object.hasOwnProperty.call(m, "startTime"))
+                    w.uint32(48).int32(m.startTime);
                 w.uint32(58).string(m.roundHash);
                 w.uint32(64).int32(m.multiplier);
                 if (m.history != null && m.history.length) {
@@ -394,7 +403,9 @@ var $protobuf = require("./protobuf");
                             m.gameStatus = r.int32();
                             break;
                         case 2:
-                            m.playerCount = r.int32();
+                            if (!(m.players && m.players.length))
+                                m.players = [];
+                            m.players.push($root.Game1006.UserInfo.decode(r, r.uint32()));
                             break;
                         case 3:
                             if (!(m.betUsers && m.betUsers.length))
@@ -430,12 +441,6 @@ var $protobuf = require("./protobuf");
                 }
                 if (!m.hasOwnProperty("gameStatus"))
                     throw $util.ProtocolError("missing required 'gameStatus'", { instance: m });
-                if (!m.hasOwnProperty("playerCount"))
-                    throw $util.ProtocolError("missing required 'playerCount'", { instance: m });
-                if (!m.hasOwnProperty("cutDown"))
-                    throw $util.ProtocolError("missing required 'cutDown'", { instance: m });
-                if (!m.hasOwnProperty("startTime"))
-                    throw $util.ProtocolError("missing required 'startTime'", { instance: m });
                 if (!m.hasOwnProperty("roundHash"))
                     throw $util.ProtocolError("missing required 'roundHash'", { instance: m });
                 if (!m.hasOwnProperty("multiplier"))
@@ -1147,7 +1152,7 @@ var $protobuf = require("./protobuf");
              * @property {Base.Code|null} [code] CashOutResp code
              * @property {string|null} [msg] CashOutResp msg
              * @property {number} betIndex CashOutResp betIndex
-             * @property {Array.<number>|null} [multiplier] CashOutResp multiplier
+             * @property {number} multiplier CashOutResp multiplier
              * @property {number|Long} winCoin CashOutResp winCoin
              */
 
@@ -1160,7 +1165,6 @@ var $protobuf = require("./protobuf");
              * @param {Game1006.ICashOutResp=} [p] Properties to set
              */
             function CashOutResp(p) {
-                this.multiplier = [];
                 if (p)
                     for (var ks = Object.keys(p), i = 0; i < ks.length; ++i)
                         if (p[ks[i]] != null)
@@ -1193,11 +1197,11 @@ var $protobuf = require("./protobuf");
 
             /**
              * CashOutResp multiplier.
-             * @member {Array.<number>} multiplier
+             * @member {number} multiplier
              * @memberof Game1006.CashOutResp
              * @instance
              */
-            CashOutResp.prototype.multiplier = $util.emptyArray;
+            CashOutResp.prototype.multiplier = 0;
 
             /**
              * CashOutResp winCoin.
@@ -1236,10 +1240,7 @@ var $protobuf = require("./protobuf");
                 if (m.msg != null && Object.hasOwnProperty.call(m, "msg"))
                     w.uint32(18).string(m.msg);
                 w.uint32(24).int32(m.betIndex);
-                if (m.multiplier != null && m.multiplier.length) {
-                    for (var i = 0; i < m.multiplier.length; ++i)
-                        w.uint32(32).int32(m.multiplier[i]);
-                }
+                w.uint32(32).int32(m.multiplier);
                 w.uint32(40).int64(m.winCoin);
                 return w;
             };
@@ -1274,14 +1275,7 @@ var $protobuf = require("./protobuf");
                             m.betIndex = r.int32();
                             break;
                         case 4:
-                            if (!(m.multiplier && m.multiplier.length))
-                                m.multiplier = [];
-                            if ((t & 7) === 2) {
-                                var c2 = r.uint32() + r.pos;
-                                while (r.pos < c2)
-                                    m.multiplier.push(r.int32());
-                            } else
-                                m.multiplier.push(r.int32());
+                            m.multiplier = r.int32();
                             break;
                         case 5:
                             m.winCoin = r.int64();
@@ -1293,6 +1287,8 @@ var $protobuf = require("./protobuf");
                 }
                 if (!m.hasOwnProperty("betIndex"))
                     throw $util.ProtocolError("missing required 'betIndex'", { instance: m });
+                if (!m.hasOwnProperty("multiplier"))
+                    throw $util.ProtocolError("missing required 'multiplier'", { instance: m });
                 if (!m.hasOwnProperty("winCoin"))
                     throw $util.ProtocolError("missing required 'winCoin'", { instance: m });
                 return m;
@@ -1523,6 +1519,117 @@ var $protobuf = require("./protobuf");
             };
 
             return GetBetHistoryResp;
+        })();
+
+        Game1006.UserInfo = (function () {
+
+            /**
+             * Properties of a UserInfo.
+             * @memberof Game1006
+             * @interface IUserInfo
+             * @property {string} userId UserInfo userId
+             * @property {string} nickName UserInfo nickName
+             */
+
+            /**
+             * Constructs a new UserInfo.
+             * @memberof Game1006
+             * @classdesc Represents a UserInfo.
+             * @implements IUserInfo
+             * @constructor
+             * @param {Game1006.IUserInfo=} [p] Properties to set
+             */
+            function UserInfo(p) {
+                if (p)
+                    for (var ks = Object.keys(p), i = 0; i < ks.length; ++i)
+                        if (p[ks[i]] != null)
+                            this[ks[i]] = p[ks[i]];
+            }
+
+            /**
+             * UserInfo userId.
+             * @member {string} userId
+             * @memberof Game1006.UserInfo
+             * @instance
+             */
+            UserInfo.prototype.userId = "";
+
+            /**
+             * UserInfo nickName.
+             * @member {string} nickName
+             * @memberof Game1006.UserInfo
+             * @instance
+             */
+            UserInfo.prototype.nickName = "";
+
+            /**
+             * Creates a new UserInfo instance using the specified properties.
+             * @function create
+             * @memberof Game1006.UserInfo
+             * @static
+             * @param {Game1006.IUserInfo=} [properties] Properties to set
+             * @returns {Game1006.UserInfo} UserInfo instance
+             */
+            UserInfo.create = function create(properties) {
+                return new UserInfo(properties);
+            };
+
+            /**
+             * Encodes the specified UserInfo message. Does not implicitly {@link Game1006.UserInfo.verify|verify} messages.
+             * @function encode
+             * @memberof Game1006.UserInfo
+             * @static
+             * @param {Game1006.IUserInfo} m UserInfo message or plain object to encode
+             * @param {$protobuf.Writer} [w] Writer to encode to
+             * @returns {$protobuf.Writer} Writer
+             */
+            UserInfo.encode = function encode(m, w) {
+                if (!w)
+                    w = $Writer.create();
+                w.uint32(10).string(m.userId);
+                w.uint32(18).string(m.nickName);
+                return w;
+            };
+
+            /**
+             * Decodes a UserInfo message from the specified reader or buffer.
+             * @function decode
+             * @memberof Game1006.UserInfo
+             * @static
+             * @param {$protobuf.Reader|Uint8Array} r Reader or buffer to decode from
+             * @param {number} [l] Message length if known beforehand
+             * @returns {Game1006.UserInfo} UserInfo
+             * @throws {Error} If the payload is not a reader or valid buffer
+             * @throws {$protobuf.util.ProtocolError} If required fields are missing
+             */
+            UserInfo.decode = function decode(r, l) {
+                if (!r)
+                    return r;
+                if (!(r instanceof $Reader))
+                    r = $Reader.create(r);
+                var c = l === undefined ? r.len : r.pos + l, m = new $root.Game1006.UserInfo();
+                while (r.pos < c) {
+                    var t = r.uint32();
+                    switch (t >>> 3) {
+                        case 1:
+                            m.userId = r.string();
+                            break;
+                        case 2:
+                            m.nickName = r.string();
+                            break;
+                        default:
+                            r.skipType(t & 7);
+                            break;
+                    }
+                }
+                if (!m.hasOwnProperty("userId"))
+                    throw $util.ProtocolError("missing required 'userId'", { instance: m });
+                if (!m.hasOwnProperty("nickName"))
+                    throw $util.ProtocolError("missing required 'nickName'", { instance: m });
+                return m;
+            };
+
+            return UserInfo;
         })();
 
         Game1006.BetUser = (function () {
@@ -1899,6 +2006,206 @@ var $protobuf = require("./protobuf");
             };
 
             return CashOutUser;
+        })();
+
+        Game1006.NotifyUserEnter = (function () {
+
+            /**
+             * Properties of a NotifyUserEnter.
+             * @memberof Game1006
+             * @interface INotifyUserEnter
+             * @property {Array.<Game1006.IUserInfo>|null} [players] NotifyUserEnter players
+             */
+
+            /**
+             * Constructs a new NotifyUserEnter.
+             * @memberof Game1006
+             * @classdesc Represents a NotifyUserEnter.
+             * @implements INotifyUserEnter
+             * @constructor
+             * @param {Game1006.INotifyUserEnter=} [p] Properties to set
+             */
+            function NotifyUserEnter(p) {
+                this.players = [];
+                if (p)
+                    for (var ks = Object.keys(p), i = 0; i < ks.length; ++i)
+                        if (p[ks[i]] != null)
+                            this[ks[i]] = p[ks[i]];
+            }
+
+            /**
+             * NotifyUserEnter players.
+             * @member {Array.<Game1006.IUserInfo>} players
+             * @memberof Game1006.NotifyUserEnter
+             * @instance
+             */
+            NotifyUserEnter.prototype.players = $util.emptyArray;
+
+            /**
+             * Creates a new NotifyUserEnter instance using the specified properties.
+             * @function create
+             * @memberof Game1006.NotifyUserEnter
+             * @static
+             * @param {Game1006.INotifyUserEnter=} [properties] Properties to set
+             * @returns {Game1006.NotifyUserEnter} NotifyUserEnter instance
+             */
+            NotifyUserEnter.create = function create(properties) {
+                return new NotifyUserEnter(properties);
+            };
+
+            /**
+             * Encodes the specified NotifyUserEnter message. Does not implicitly {@link Game1006.NotifyUserEnter.verify|verify} messages.
+             * @function encode
+             * @memberof Game1006.NotifyUserEnter
+             * @static
+             * @param {Game1006.INotifyUserEnter} m NotifyUserEnter message or plain object to encode
+             * @param {$protobuf.Writer} [w] Writer to encode to
+             * @returns {$protobuf.Writer} Writer
+             */
+            NotifyUserEnter.encode = function encode(m, w) {
+                if (!w)
+                    w = $Writer.create();
+                if (m.players != null && m.players.length) {
+                    for (var i = 0; i < m.players.length; ++i)
+                        $root.Game1006.UserInfo.encode(m.players[i], w.uint32(10).fork()).ldelim();
+                }
+                return w;
+            };
+
+            /**
+             * Decodes a NotifyUserEnter message from the specified reader or buffer.
+             * @function decode
+             * @memberof Game1006.NotifyUserEnter
+             * @static
+             * @param {$protobuf.Reader|Uint8Array} r Reader or buffer to decode from
+             * @param {number} [l] Message length if known beforehand
+             * @returns {Game1006.NotifyUserEnter} NotifyUserEnter
+             * @throws {Error} If the payload is not a reader or valid buffer
+             * @throws {$protobuf.util.ProtocolError} If required fields are missing
+             */
+            NotifyUserEnter.decode = function decode(r, l) {
+                if (!r)
+                    return r;
+                if (!(r instanceof $Reader))
+                    r = $Reader.create(r);
+                var c = l === undefined ? r.len : r.pos + l, m = new $root.Game1006.NotifyUserEnter();
+                while (r.pos < c) {
+                    var t = r.uint32();
+                    switch (t >>> 3) {
+                        case 1:
+                            if (!(m.players && m.players.length))
+                                m.players = [];
+                            m.players.push($root.Game1006.UserInfo.decode(r, r.uint32()));
+                            break;
+                        default:
+                            r.skipType(t & 7);
+                            break;
+                    }
+                }
+                return m;
+            };
+
+            return NotifyUserEnter;
+        })();
+
+        Game1006.NotifyUserLeave = (function () {
+
+            /**
+             * Properties of a NotifyUserLeave.
+             * @memberof Game1006
+             * @interface INotifyUserLeave
+             * @property {Array.<string>|null} [userIds] NotifyUserLeave userIds
+             */
+
+            /**
+             * Constructs a new NotifyUserLeave.
+             * @memberof Game1006
+             * @classdesc Represents a NotifyUserLeave.
+             * @implements INotifyUserLeave
+             * @constructor
+             * @param {Game1006.INotifyUserLeave=} [p] Properties to set
+             */
+            function NotifyUserLeave(p) {
+                this.userIds = [];
+                if (p)
+                    for (var ks = Object.keys(p), i = 0; i < ks.length; ++i)
+                        if (p[ks[i]] != null)
+                            this[ks[i]] = p[ks[i]];
+            }
+
+            /**
+             * NotifyUserLeave userIds.
+             * @member {Array.<string>} userIds
+             * @memberof Game1006.NotifyUserLeave
+             * @instance
+             */
+            NotifyUserLeave.prototype.userIds = $util.emptyArray;
+
+            /**
+             * Creates a new NotifyUserLeave instance using the specified properties.
+             * @function create
+             * @memberof Game1006.NotifyUserLeave
+             * @static
+             * @param {Game1006.INotifyUserLeave=} [properties] Properties to set
+             * @returns {Game1006.NotifyUserLeave} NotifyUserLeave instance
+             */
+            NotifyUserLeave.create = function create(properties) {
+                return new NotifyUserLeave(properties);
+            };
+
+            /**
+             * Encodes the specified NotifyUserLeave message. Does not implicitly {@link Game1006.NotifyUserLeave.verify|verify} messages.
+             * @function encode
+             * @memberof Game1006.NotifyUserLeave
+             * @static
+             * @param {Game1006.INotifyUserLeave} m NotifyUserLeave message or plain object to encode
+             * @param {$protobuf.Writer} [w] Writer to encode to
+             * @returns {$protobuf.Writer} Writer
+             */
+            NotifyUserLeave.encode = function encode(m, w) {
+                if (!w)
+                    w = $Writer.create();
+                if (m.userIds != null && m.userIds.length) {
+                    for (var i = 0; i < m.userIds.length; ++i)
+                        w.uint32(10).string(m.userIds[i]);
+                }
+                return w;
+            };
+
+            /**
+             * Decodes a NotifyUserLeave message from the specified reader or buffer.
+             * @function decode
+             * @memberof Game1006.NotifyUserLeave
+             * @static
+             * @param {$protobuf.Reader|Uint8Array} r Reader or buffer to decode from
+             * @param {number} [l] Message length if known beforehand
+             * @returns {Game1006.NotifyUserLeave} NotifyUserLeave
+             * @throws {Error} If the payload is not a reader or valid buffer
+             * @throws {$protobuf.util.ProtocolError} If required fields are missing
+             */
+            NotifyUserLeave.decode = function decode(r, l) {
+                if (!r)
+                    return r;
+                if (!(r instanceof $Reader))
+                    r = $Reader.create(r);
+                var c = l === undefined ? r.len : r.pos + l, m = new $root.Game1006.NotifyUserLeave();
+                while (r.pos < c) {
+                    var t = r.uint32();
+                    switch (t >>> 3) {
+                        case 1:
+                            if (!(m.userIds && m.userIds.length))
+                                m.userIds = [];
+                            m.userIds.push(r.string());
+                            break;
+                        default:
+                            r.skipType(t & 7);
+                            break;
+                    }
+                }
+                return m;
+            };
+
+            return NotifyUserLeave;
         })();
 
         Game1006.NotifyBet = (function () {
@@ -2537,6 +2844,7 @@ var $protobuf = require("./protobuf");
 
     return $root;
 })(protobuf).Game1006;
+
 module.exports = {
     Game1006: global.Game1006
 }

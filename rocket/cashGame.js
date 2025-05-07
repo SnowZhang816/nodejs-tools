@@ -94,7 +94,7 @@ class CashGame {
 		response.code = code;
 		response.errMsg = errMsg;
 		response.gameStatus = this.status;
-		response.playerCount = this.clients.length;
+		response.player = [];
 		response.betUsers = this.betClients;
 		response.cashOutUsers = this.cashOutUsers;
 		response.history = this.history

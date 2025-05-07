@@ -1,8 +1,13 @@
 let Config = require('./config.js');
-let path = require('path');
-let utils = require('../utils/utils.js');
-let fs = require('fs');
-let { Pack } = require('./pack.js');
+
+const audioClip = require('../assets/audioClip.js');
+const skeletonData = require('../assets/skeletonData.js');
+const texture2D = require('../assets/texture2D.js');
+const animationClip = require('../assets/animationClip.js');
+const asset = require('../assets/asset.js');
+const bitmapFont = require('../assets/bitmapFont.js');
+const spriteAtlas = require('../assets/spriteAtlas.js');
+const spriteFrame = require('../assets/spriteFrame.js');
 
 class Bundle {
 	bundleName = "";
@@ -11,7 +16,7 @@ class Bundle {
 
 	pack = null;
 
-	exportsOfHandler = {};
+	assetsHandler = {};
 
 	constructor(bundleName, bundlePath, data) {
 		this.bundleName = bundleName;
@@ -21,54 +26,34 @@ class Bundle {
 		config.init(data, bundlePath);
 		this.config = config;
 
-		for (let [key, info] of this.config.assetInfos) {
-			if (info.ext === '.json') {
-				let uuid = info.uuid;
-				let nativeVer = info.nativeVer;
-
-				let srcAsset = path.join(this.bundlePath, `import/${uuid.slice(0, 2)}/${uuid}.json`);
-				if (nativeVer) {
-					srcAsset = path.join(this.bundlePath, `import/${uuid.slice(0, 2)}/${uuid}.${nativeVer}.json`);
-				}
-				if (fs.existsSync(srcAsset)) {
-					let packJson = fs.readFileSync(srcAsset, 'utf8');
-					let json = JSON.parse(packJson);
-					this.pack = new Pack();
-					this.pack.unpack(json);
-				}
-			}
-		}
-
-		this.exportsOfHandler = {
-			"sp.SkeletonData": this.exportsSkeletonData.bind(this),
-			"cc.AudioClip": this.exportsAudioClip.bind(this)
+		this.assetsHandler = {
+			"sp.SkeletonData": skeletonData,
+			"cc.AudioClip": audioClip,
+			"cc.Texture2D": texture2D,
+			"cc.AnimationClip": animationClip,
+			"cc.Asset": asset,
+			"cc.BitmapFont": bitmapFont,
+			"cc.SpriteAtlas": spriteAtlas,
+			"cc.SpriteFrame": spriteFrame,
+			// "cc.TTFFont": this.exportsTexture2D.bind(this)
 		};
 	}
 
-
 	exportAssets(destDir) {
 		for (let [key, info] of this.config.assetInfos) {
-			if (info.ctor && this.exportsOfHandler[info.ctor]) {
-				this.exportsOfHandler[info.ctor](info, destDir);
+			if (info.ctor && this.assetsHandler[info.ctor]) {
+				let handler = this.assetsHandler[info.ctor];
+				handler["export"](info, destDir, this.bundleName, this.bundlePath, this.config);
+			} else {
+				if (info.ctor) {
+					console.warn(`${info.ctor} has no handler`);
+				} else if (info.path) {
+					console.warn(`${info.path} has no ctor`);
+				} else {
+					console.warn(`${key} has no ctor and path`);
+				}
 			}
 		}
-	}
-
-	exportsAudioClip(assetInfo, destDir) {
-		let relationPath = assetInfo.path;
-		let uuid = assetInfo.uuid;
-		let nativeVer = assetInfo.nativeVer;
-
-		let srcAsset = path.join(this.bundlePath, `native/${uuid.slice(0, 2)}/${uuid}.mp3`);
-		if (nativeVer) {
-			srcAsset = path.join(this.bundlePath, `native/${uuid.slice(0, 2)}/${uuid}.${nativeVer}.mp3`);
-		}
-		let destAsset = path.join(destDir, this.bundleName, `${relationPath}.mp3`);
-		utils.copyDirOrFile(srcAsset, destAsset);
-	}
-
-	exportsSkeletonData(assetInfo, destDir) {
-
 	}
 }
 module.exports = {

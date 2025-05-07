@@ -16,11 +16,12 @@ const File = {
 	DependKeys: 9,
 	DependUuidIndices: 10,
 
-	ARRAY_LENGTH: 11,  // 通常不需要这个属性，因为可以通过Object.keys(File).length来获取
+	ARRAY_LENGTH: 11,
 };
 const SUPPORT_MIN_FORMAT_VERSION = 1;
 const MASK_CLASS = 0;
 const PACKED_SECTIONS = File.Instances;
+const EMPTY_PLACEHOLDER = 0;
 
 class Pack {
 	sharedUuids = [];
@@ -62,6 +63,33 @@ class Pack {
 		}
 		return pack;
 	}
+
+	packCustomObjData(type, data, hasNativeDep) {
+		return [
+			SUPPORT_MIN_FORMAT_VERSION, EMPTY_PLACEHOLDER, EMPTY_PLACEHOLDER,
+			[type],
+			EMPTY_PLACEHOLDER,
+			hasNativeDep ? [data, ~0] : [data],
+			[0],
+			EMPTY_PLACEHOLDER, [], [], []
+		];
+	}
+
+	hasNativeDep(data) {
+		let instances = data[File.Instances];
+		let rootInfo = instances[instances.length - 1];
+		if (typeof rootInfo !== 'number') {
+			return false;
+		}
+		else {
+			return rootInfo < 0;
+		}
+	}
+
+	getDependUuidList(json) {
+		let sharedUuids = json[File.SharedUuids];
+		return json[File.DependUuidIndices].map(index => sharedUuids[index]);
+	}
 }
 
-module.exports = { Pack };
+module.exports = { Pack, File };

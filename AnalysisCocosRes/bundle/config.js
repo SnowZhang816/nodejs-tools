@@ -112,8 +112,6 @@ class Config {
 		this.name = options.name || '';
 		this.deps = options.deps || [];
 
-
-
 		// init
 		this._initUuid(options.uuids);
 		this._initPath(options.paths);
@@ -127,21 +125,35 @@ class Config {
 
 			let uuid = packUuid;
 			let asset = this.assetInfos.get(uuid);
-			let nativeVer = asset.nativeVer;
+			let importVer = asset.ver;
 			let srcAsset = path.join(this.bundlePath, `import/${uuid.slice(0, 2)}/${uuid}.json`);
-			if (nativeVer) {
-				srcAsset = path.join(this.bundlePath, `import/${uuid.slice(0, 2)}/${uuid}.${nativeVer}.json`);
+			if (importVer) {
+				srcAsset = path.join(this.bundlePath, `import/${uuid.slice(0, 2)}/${uuid}.${importVer}.json`);
 			}
 			if (fs.existsSync(srcAsset)) {
 				let packJson = fs.readFileSync(srcAsset, 'utf8');
 				let json = JSON.parse(packJson);
-				let pack = new Pack();
-				let out = pack.unpack(json);
-				for (var j = 0; j < uuids.length; ++j) {
-					let assets = this.getAssetInfo(uuids[j]);
-					assets.packInfo = out[j]
+				if (Array.isArray(json)) {
+					let pack = new Pack();
+					let out = pack.unpack(json);
+					for (var j = 0; j < uuids.length; ++j) {
+						let assets = this.getAssetInfo(uuids[j]);
+						assets.packInfo = out[j]
+					}
+				} else {
+					if (json.type === 'cc.Texture2D') {
+						if (json.data) {
+							var datas = json.data.split('|');
+							if (datas.length !== uuids.length) {
+								console.error(`texture pack data length not match: ${datas.length} !== ${pack.length}`);
+							}
+							for (let i = 0; i < uuids.length; i++) {
+								let assets = this.getAssetInfo(uuids[i]);
+								assets.packInfo = Pack.prototype.packCustomObjData('cc.Texture2D', datas[i], true)
+							}
+						}
+					}
 				}
-
 			}
 		}
 	}

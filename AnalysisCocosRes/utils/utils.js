@@ -127,7 +127,7 @@ class Utils {
 
 	/** 拷贝目录或文件 */
 	copyDirOrFile = function (srcDir, destDir) {
-		console.log('copyDir', srcDir, destDir);
+		// console.log('copyDir', srcDir, destDir);
 		// 检查源目录是否存在
 		if (!fs.existsSync(srcDir)) {
 			console.error(`源目录不存在: ${srcDir}`);
@@ -161,6 +161,18 @@ class Utils {
 		} else {
 			fs.copyFileSync(srcDir, destDir);
 		}
+	};
+
+	ensureDirExist = function (destDir) {
+		let destDirPath = path.dirname(destDir);
+		if (!fs.existsSync(destDirPath)) {
+			fs.mkdirSync(destDirPath, { recursive: true });
+		}
+	}
+
+	writeFileSync = function (destDir, data) {
+		this.ensureDirExist(destDir);
+		fs.writeFileSync(destDir, data);
 	};
 }
 

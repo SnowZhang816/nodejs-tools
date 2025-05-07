@@ -7,18 +7,9 @@
 		{
 			"type": "node",
 			"request": "launch",
-			"name": "rocket",
-			"skipFiles": ["<node_internals>/**"],
-			"program": "${workspaceFolder}\\rocket\\main.js",
-			"outFiles": ["${workspaceFolder}/**/*.js"]
-		},
-		{
-			"type": "node",
-			"request": "launch",
 			"name": "analysis",
 			"skipFiles": ["<node_internals>/**"],
-			"program": "${workspaceFolder}\\AnalysisCocosRes\\main.js",
-			"outFiles": ["${workspaceFolder}/**/*.js"]
+			"program": "${workspaceFolder}\\main.js"
 		}
 	]
 }
