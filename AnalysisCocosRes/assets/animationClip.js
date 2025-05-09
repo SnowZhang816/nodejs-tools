@@ -4,28 +4,36 @@ let { File } = require('../bundle/pack.js');
 
 class AnimationClip {
 	export(assetInfo, destDir, bundleName, bundlePath) {
-		// TODO: 动画剪辑打包
-		// let packInfo = assetInfo.packInfo;
+		//TODO: 动画剪辑打包
+		let packInfo = assetInfo.packInfo;
 
-		// if (packInfo) {
-		// 	let info = packInfo[File.Instances];
-		// 	if (info) {
-		// 		let jsonData = info[0][4];
-		// 		let destAsset = path.join(destDir, bundleName, `${assetInfo.path}.json`);
-		// 		utils.writeFileSync(destAsset, JSON.stringify(jsonData));
-		// 	}
-		// } else {
-		// 	let relationPath = assetInfo.path;
-		// 	let uuid = assetInfo.uuid;
-		// 	let nativeVer = assetInfo.ver;
+		if (packInfo) {
+			let info = packInfo[File.Instances];
+			if (info) {
+				let jsonData = info[0];
+				let data = {
+					__type__: 'cc.AnimationClip',
+					_name: jsonData[1],
+					_objFlags: 0,
+					_native: '',
+					_duration: jsonData[2],
+					sample: jsonData[3],
+					speed: 1,
+					wrapMode: 1,
+					curveData: jsonData[4],
+					events: jsonData[5] || [],
+					wrapRepeatMode: 1,
+					_durationUnit: jsonData[6],
+					_durationUnitTimeScale: jsonData[7]
+				}
 
-		// 	let srcAsset = path.join(bundlePath, `native/${uuid.slice(0, 2)}/${uuid}.json`);
-		// 	if (nativeVer) {
-		// 		srcAsset = path.join(bundlePath, `native/${uuid.slice(0, 2)}/${uuid}.${nativeVer}.json`);
-		// 	}
-		// 	let destAsset = path.join(destDir, bundleName, `${relationPath}.json`);
-		// 	utils.copyDirOrFile(srcAsset, destAsset);
-		// }
+				let destAsset = path.join(destDir, bundleName, `${assetInfo.path}.json`);
+				utils.writeFileSync(destAsset, JSON.stringify(data, null, '\t'));
+			}
+
+		} else {
+			console.log('material unpack is not supported now.');
+		}
 	}
 }
 

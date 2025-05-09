@@ -1,6 +1,4 @@
 
-
-let utils = require('../utils/utils.js');
 let path = require('path');
 let { Pack, File } = require('../bundle/pack.js');
 let fs = require('fs');
@@ -47,8 +45,8 @@ class SpriteFrame {
 	handlerDepends(assetInfo, data, destDir, bundlePath, config) {
 		let depends = Pack.prototype.getDependUuidList(data);
 		if (depends && depends.length > 0) {
-			let dependTexture = depends[0];
-			let dependTextureUuid = utils.decodeUUID(dependTexture);
+			let dependTextureUuid = depends[0];
+			// let dependTextureUuid = utils.decodeUUID(dependTexture);
 			let textureAssetInfo = config.assetInfos.get(dependTextureUuid);
 			if (textureAssetInfo.path != assetInfo.path) {
 				let info = data[File.Instances]

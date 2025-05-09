@@ -1,3 +1,6 @@
+
+let utils = require('../utils/utils.js');
+
 const File = {
 	Version: 0,
 	Context: 0,
@@ -88,7 +91,7 @@ class Pack {
 
 	getDependUuidList(json) {
 		let sharedUuids = json[File.SharedUuids];
-		return json[File.DependUuidIndices].map(index => sharedUuids[index]);
+		return json[File.DependUuidIndices].map(index => utils.decodeUUID(sharedUuids[index]));
 	}
 }
 

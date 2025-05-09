@@ -8,6 +8,10 @@ const asset = require('../assets/asset.js');
 const bitmapFont = require('../assets/bitmapFont.js');
 const spriteAtlas = require('../assets/spriteAtlas.js');
 const spriteFrame = require('../assets/spriteFrame.js');
+const material = require('../assets/material.js');
+const prefab = require('../assets/prefab.js');
+const effectAsset = require('../assets/effectAsset.js');
+const jsonAsset = require('../assets/json.js');
 
 class Bundle {
 	bundleName = "";
@@ -35,7 +39,11 @@ class Bundle {
 			"cc.BitmapFont": bitmapFont,
 			"cc.SpriteAtlas": spriteAtlas,
 			"cc.SpriteFrame": spriteFrame,
-			// "cc.TTFFont": this.exportsTexture2D.bind(this)
+			"cc.Material": material,
+			"cc.Prefab": prefab,
+			"cc.EffectAsset": effectAsset,
+			"cc.JsonAsset": jsonAsset,
+			"cc.TextAsset": jsonAsset,
 		};
 	}
 
@@ -56,6 +64,7 @@ class Bundle {
 		}
 	}
 }
+
 module.exports = {
 	Bundle: Bundle
 };
