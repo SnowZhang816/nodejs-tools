@@ -26,7 +26,7 @@ class Main {
 			// 单文件大小限制
 			Max: 5200000, // 5MB == 5242848.754299136
 			/** 缓存keys */
-			keyCache: false,
+			keyCache: true,
 			/** 失败列表重试次数 */
 			failRetry: 3,
 		};
@@ -99,9 +99,11 @@ class Main {
 		// 使用缓存key
 		if (this.conf.keyCache) {
 			this.keys = await this.getKeysFromCache(totalKeyNum);
+			logger_1.default.info('使用缓存key列表', this.keys);
 		}
 		// 创建新的api key
-		if (this.keys.length < totalKeyNum) {
+		let newKey = true;
+		if (this.keys.length < totalKeyNum || newKey) {
 			logger_1.default.info(`需要创建key数量：${totalKeyNum - this.keys.length}`);
 			// 获取key时间 每个key最多10分钟
 			if (this.conf.keyTime === 0) {
@@ -197,7 +199,10 @@ class Main {
 	 */
 	async getKeysFromCache(needNum) {
 		return new Promise((resolve) => {
-			const keyCachePath = path_1.default.join(process.cwd(), `keys.json`);
+			const keyCachePath = path_1.default.join(__dirname, `keys.json`);
+
+			console.log('keyCachePath:', keyCachePath);
+
 			fs_1.default.readFile(keyCachePath, 'utf-8', async (err, data) => {
 				if (err) {
 					logger_1.default.error('Failed to read key cache:', err);
@@ -244,8 +249,8 @@ class Main {
 	}
 	/** 保存缓存key */
 	saveKeysCache(data) {
-		const keyCachePath = path_1.default.join(process.cwd(), `keys.json`);
-		fs_1.default.writeFileSync(keyCachePath, JSON.stringify(data));
+		const keyCachePath = path_1.default.join(__dirname, `keys.json`);
+		fs_1.default.writeFileSync(keyCachePath, JSON.stringify(data, null, "\t"));
 	}
 	/**
 	 * 开始压缩文件列表中的文件。
