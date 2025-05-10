@@ -1,35 +1,46 @@
 let utils = require('../utils/utils.js');
 let path = require('path');
-let { Pack, File } = require('../bundle/pack.js');
+const { File } = require('../deserialize/deserialize.js')
+const { deserialize } = require('../deserialize/deserialize.js');
+let fs = require('fs');
 
 class Material {
+	create() {
+		let jsonData = {};
+		jsonData.__type__ = 'cc.Material';
+		jsonData._objFlags = 0;
+		jsonData._native = '';
+		jsonData._effectAsset = null;
+		return jsonData;
+	}
+
 	export(assetInfo, destDir, bundleName, bundlePath) {
 		let packInfo = assetInfo.packInfo
 		if (packInfo) {
-			let info = packInfo[File.Instances];
-			if (info) {
-				let jsonData = info[0];
-				let depends = Pack.prototype.getDependUuidList(packInfo);
-				let effectAssetId = jsonData[2];
-				let effectAssetUuid = depends[effectAssetId] ? depends[effectAssetId] : '';
-
-
-				let data = {
-					__type__: 'cc.AnimationClip',
-					_name: jsonData[1],
-					_objFlags: 0,
-					_native: '',
-					_effectAsset: {
-						__uuid__: effectAssetUuid,
-					},
-					_techniqueIndex: 1,
-					_techniqueData: {}
-				}
-
-
-
+			let rootIndex = deserialize.parseInstances(packInfo);
+			let instances = packInfo[File.Instances];
+			if (instances && instances[rootIndex]) {
+				let jsonData = instances[rootIndex];
 				let destAsset = path.join(destDir, bundleName, `${assetInfo.path}.mtl`);
-				utils.writeFileSync(destAsset, JSON.stringify(data, null, '\t'));
+				utils.writeFileSync(destAsset, JSON.stringify(jsonData, null, '\t'));
+			}
+		} else {
+			let uuid = assetInfo.uuid;
+			let importVer = assetInfo.ver;
+			let importAsset = path.join(bundlePath, `import/${uuid.slice(0, 2)}/${uuid}.json`);
+			if (importVer) {
+				importAsset = path.join(bundlePath, `import/${uuid.slice(0, 2)}/${uuid}.${importVer}.json`);
+			}
+			if (fs.existsSync(importAsset)) {
+				let data = fs.readFileSync(importAsset, 'utf8');
+				let packInfo = JSON.parse(data);
+				let rootIndex = deserialize.parseInstances(packInfo);
+				let instances = packInfo[File.Instances];
+				if (instances && instances[rootIndex]) {
+					let jsonData = instances[rootIndex];
+					let destAsset = path.join(destDir, bundleName, `${assetInfo.path}.mtl`);
+					utils.writeFileSync(destAsset, JSON.stringify(jsonData, null, '\t'));
+				}
 			}
 		}
 	}

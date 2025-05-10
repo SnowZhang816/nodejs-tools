@@ -1,6 +1,6 @@
 let utils = require('../utils/utils.js');
 let path = require('path');
-let { File } = require('../bundle/pack.js');
+const { File } = require('../deserialize/deserialize.js')
 let fs = require('fs');
 
 class SkeletonData {

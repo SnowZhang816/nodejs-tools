@@ -2,6 +2,7 @@ let utils = require('../utils/utils.js');
 let path = require('path');
 let fs = require('fs');
 let { Pack } = require('./pack.js');
+const { findClass } = require('../deserialize/deserialize.js')
 
 function processOptions(options) {
 	var uuids = options.uuids;
@@ -179,7 +180,7 @@ class Config {
 
 			var assetInfo = this.assetInfos.get(uuid);
 			assetInfo.path = path;
-			assetInfo.ctor = type;
+			assetInfo.ctor = findClass(type);
 			if (paths.has(path)) {
 				if (isSubAsset) {
 					paths.get(path).push(assetInfo);

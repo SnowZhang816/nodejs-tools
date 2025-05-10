@@ -1,26 +1,8 @@
 
 let utils = require('../utils/utils.js');
 
-const File = {
-	Version: 0,
-	Context: 0,
+const { File, lookupClasses, cacheMasks } = require('../deserialize/deserialize.js')
 
-	SharedUuids: 1,
-	SharedStrings: 2,
-	SharedClasses: 3,
-	SharedMasks: 4,
-
-	Instances: 5,
-	InstanceTypes: 6,
-
-	Refs: 7,
-
-	DependObjs: 8,
-	DependKeys: 9,
-	DependUuidIndices: 10,
-
-	ARRAY_LENGTH: 11,
-};
 const SUPPORT_MIN_FORMAT_VERSION = 1;
 const MASK_CLASS = 0;
 const PACKED_SECTIONS = File.Instances;
@@ -35,24 +17,13 @@ class Pack {
 
 	files = {};
 
-	cacheMasks(data) {
-		let masks = data[File.SharedMasks];
-		if (masks) {
-			let classes = data[File.SharedClasses];
-			for (let i = 0; i < masks.length; ++i) {
-				let mask = masks[i];
-				// @ts-ignore
-				mask[MASK_CLASS] = classes[mask[MASK_CLASS]];
-			}
-		}
-	}
-
 	unpack(json) {
 		if (json[File.Version] < SUPPORT_MIN_FORMAT_VERSION) {
 			throw new Error(`不支持的版本:${json[File.Version]}`);
 		}
 
-		this.cacheMasks(json);
+		lookupClasses(json, true);
+		cacheMasks(json);
 
 		this.version = json[File.Version];
 		this.sharedUuids = json[File.SharedUuids];

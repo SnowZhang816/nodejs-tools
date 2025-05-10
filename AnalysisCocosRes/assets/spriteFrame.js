@@ -1,6 +1,7 @@
 
 let path = require('path');
-let { Pack, File } = require('../bundle/pack.js');
+let { Pack } = require('../bundle/pack.js');
+const { File } = require('../deserialize/deserialize.js')
 let fs = require('fs');
 let imageMgr = require('./imageMgr.js');
 
