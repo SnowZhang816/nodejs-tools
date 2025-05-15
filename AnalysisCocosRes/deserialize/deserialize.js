@@ -1,4 +1,5 @@
 let utils = require('../utils/utils.js');
+let { findClass } = require('./findClass.js')
 
 const File = {
 	Version: 0,
@@ -52,39 +53,12 @@ const CLASS_TYPE = 0;
 const CLASS_KEYS = 1;
 const CLASS_PROP_TYPE_OFFSET = 2;
 
-function findClass(type) {
-	if (type === "cc.AnimationClip") {
-		return require('../assets/animationClip.js');
-	} else if (type === "cc.Asset") {
-		return require('../assets/asset.js');
-	} else if (type === "cc.AudioClip") {
-		return require('../assets/audioClip.js');
-	} else if (type === "cc.BitmapFont") {
-		return require('../assets/bitmapFont.js');
-	} else if (type === "cc.EffectAsset") {
-		return require('../assets/effectAsset.js');
-	} else if (type === "cc.JsonAsset") {
-		return require('../assets/json.js');
-	} else if (type === "cc.Material") {
-		return require('../assets/material.js');
-	} else if (type === "cc.Prefab") {
-		return require('../assets/prefab.js');
-	} else if (type === "cc.SkeletonData") {
-		return require('../assets/skeletonData.js');
-	} else if (type === "cc.SpriteAtlas") {
-		return require('../assets/spriteAtlas.js');
-	} else if (type === "cc.SpriteFrame") {
-		return require('../assets/spriteFrame.js');
-	} else if (type === "cc.Texture2D") {
-		return require('../assets/texture2d.js');
-	}
-}
 
 function genArrayParser(parser) {
-	return function (data, owner, key, value) {
+	return function (data, owner, key, value, objs) {
 		owner[key] = value;
 		for (let i = 0; i < value.length; ++i) {
-			parser(data, value, i, value[i]);
+			parser(data, value, i, value[i], objs);
 		}
 	};
 }
@@ -98,7 +72,14 @@ function assignInstanceRef(data, owner, key, value) {
 		owner[key] = data[File.Instances][value];
 	}
 	else {
+		let refs = data[File.Refs];
+		let t = ~value;
+		let tt = t * Refs.EACH_RECORD_LENGTH;
+		let d = refs[tt];
+
 		(data[File.Refs])[(~value) * Refs.EACH_RECORD_LENGTH] = owner;
+
+		refs[tt] = owner;
 	}
 }
 
@@ -109,10 +90,107 @@ function parseAssetRefByInnerObj(data, owner, key, value) {
 }
 
 
-function parseClass(data, owner, key, value) {
-	owner[key] = deserializeCCObject(data, value);
+function parseClass(data, owner, key, value, objs) {
+	owner[key] = deserializeCCObject(data, value, objs);
 }
 
+const BuiltinValueType = {
+	Vec2: 0,
+	Vec3: 1,
+	Vec4: 2,
+	Quat: 3,
+	Color: 4,
+	Size: 5,
+	Rect: 6,
+	Mat4: 7,
+}
+
+const DefaultBuiltinValueTypeSetters = [
+	// Vec2
+	function () {
+		return {
+			"__type__": "cc.Vec2",
+			"x": 0,
+			"y": 0
+		}
+	},
+	// Vec3
+	function () {
+		return {
+			"__type__": "cc.Vec3",
+			"x": 0,
+			"y": 0,
+			"z": 0
+		}
+	},
+	// Vec4
+	function () {
+		return {
+			"__type__": "cc.Vec4",
+			"x": 0,
+			"y": 0,
+			"z": 0,
+			"w": 0
+		}
+	},
+	// Quat
+	function (data) {
+		return {
+			"__type__": "cc.Quat",
+			"x": 0,
+			"y": 0,
+			"z": 0,
+			"w": 0
+		}
+	},
+	// Color
+	function () {
+		return {
+			"__type__": "cc.Color",
+			"r": 255,
+			"g": 255,
+			"b": 255,
+			"a": 255
+		}
+	},
+	// Size
+	function () {
+		return {
+			"__type__": "cc.Size",
+			"width": 0,
+			"height": 0
+		}
+	},
+	// Rect
+	function () {
+		return {
+			"__type__": "cc.Rect",
+			"x": 0,
+			"y": 0,
+			"width": 0,
+			"height": 0
+		}
+	},
+	// Mat4
+	function () {
+		return {
+			"__type__": "TypedArray",
+			"ctor": "Float64Array",
+			"array": [
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				1,
+				1,
+				1,
+				1
+			]
+		}
+	}
+];
 
 const BuiltinValueTypeSetters = [
 	// Vec2
@@ -184,23 +262,20 @@ const BuiltinValueTypeSetters = [
 	// Mat4
 	function (data) {
 		return {
-			"__type__": "cc.Mat4",
-			"m00": data[1],
-			"m01": data[2],
-			"m02": data[3],
-			"m03": data[4],
-			"m10": data[5],
-			"m11": data[6],
-			"m12": data[7],
-			"m13": data[8],
-			"m20": data[9],
-			"m21": data[10],
-			"m22": data[11],
-			"m23": data[12],
-			"m30": data[13],
-			"m31": data[14],
-			"m32": data[15],
-			"m33": data[16],
+			"__type__": "TypedArray",
+			"ctor": "Float64Array",
+			"array": [
+				data[0],
+				data[1],
+				data[2],
+				data[3],
+				data[4],
+				data[5],
+				data[6],
+				data[7],
+				data[8],
+				data[9],
+			]
 		}
 	}
 ];
@@ -237,7 +312,7 @@ function parseCustomClass(data, owner, key, value) {
 
 }
 
-function parseDict(data, owner, key, value) {
+function parseDict(data, owner, key, value, objs) {
 	let dict = value[DICT_JSON_LAYOUT];
 	owner[key] = dict;
 	for (let i = DICT_JSON_LAYOUT + 1; i < value.length; i += 3) {
@@ -245,12 +320,12 @@ function parseDict(data, owner, key, value) {
 		let type = value[i + 1];
 		let subValue = value[i + 2];
 		let op = Assignment[type];
-		op(data, dict, key, subValue);
+		op(data, dict, key, subValue, objs);
 	}
 }
 
 const ARRAY_ITEM_VALUES = 0;
-function parseArray(data, owner, key, value) {
+function parseArray(data, owner, key, value, objs) {
 	let array = value[ARRAY_ITEM_VALUES];
 	owner[key] = array;
 	for (let i = 0; i < array.length; ++i) {
@@ -258,7 +333,7 @@ function parseArray(data, owner, key, value) {
 		let type = value[i + 1];
 		if (type !== DataTypeID.SimpleType) {
 			let op = Assignment[type];
-			op(data, array, i, subValue);
+			op(data, array, i, subValue, objs);
 		}
 	}
 }
@@ -277,6 +352,38 @@ const Assignment = {
 	[DataTypeID.CustomizedClass]: parseCustomClass,
 	[DataTypeID.Dict]: parseDict,
 	[DataTypeID.Array]: parseArray,
+}
+
+function dereference(refs, instances, strings) {
+	let dataLength = refs.length - 1;
+	let i = 0;
+	// owner is object
+	let instanceOffset = refs[dataLength] * Refs.EACH_RECORD_LENGTH;
+	for (; i < instanceOffset; i += Refs.EACH_RECORD_LENGTH) {
+		const owner = refs[i];
+
+		const target = instances[refs[i + Refs.TARGET_OFFSET]];
+		const keyIndex = refs[i + Refs.KEY_OFFSET];
+		if (keyIndex >= 0) {
+			owner[strings[keyIndex]] = target;
+		}
+		else {
+			owner[~keyIndex] = target;
+		}
+	}
+	// owner is instance index
+	for (; i < dataLength; i += Refs.EACH_RECORD_LENGTH) {
+		const owner = instances[refs[i]];
+
+		const target = instances[refs[i + Refs.TARGET_OFFSET]];
+		const keyIndex = refs[i + Refs.KEY_OFFSET];
+		if (keyIndex >= 0) {
+			owner[strings[keyIndex]] = target;
+		}
+		else {
+			owner[~keyIndex] = target;
+		}
+	}
 }
 
 function parseResult(data) {
@@ -375,7 +482,7 @@ function cacheMasks(data) {
 	}
 }
 
-function deserializeCCObject(data, objectData) {
+function deserializeCCObject(data, objectData, objs) {
 	let mask = data[File.SharedMasks][objectData[OBJ_DATA_MASK]];
 	let clazz = mask[MASK_CLASS];
 	let ctor = clazz[CLASS_TYPE];
@@ -383,14 +490,17 @@ function deserializeCCObject(data, objectData) {
 	if (!ctor) {
 		lookupClasses(data, true);
 		cacheMasks(data);
+
+		clazz = mask[MASK_CLASS];
+		ctor = clazz[CLASS_TYPE];
 	}
 
-	clazz = mask[MASK_CLASS];
-	ctor = clazz[CLASS_TYPE];
 	let obj = {}
 	if (ctor && ctor.create) {
 		obj = ctor.create();
 	}
+
+	objs && objs.push(obj);
 
 	let keys = clazz[CLASS_KEYS];
 	let classTypeOffset = clazz[CLASS_PROP_TYPE_OFFSET];
@@ -410,14 +520,14 @@ function deserializeCCObject(data, objectData) {
 		let key = keys[maskIndex];
 		let type = clazz[maskIndex + classTypeOffset];
 		let op = Assignment[type];
-		op(data, obj, key, objectData[i]);
+		op(data, obj, key, objectData[i], objs);
 	}
 
 	return obj;
 }
 
 class Deserialize {
-	parseInstances(data) {
+	parseInstances(data, objs) {
 		let instances = data[File.Instances];
 		let instanceTypes = data[File.InstanceTypes];
 		let instanceTypesLen = instanceTypes === 0 ? 0 : instanceTypes.length;
@@ -434,7 +544,11 @@ class Deserialize {
 
 		let insIndex = 0;
 		for (; insIndex < normalObjectCount; ++insIndex) {
-			instances[insIndex] = deserializeCCObject(data, instances[insIndex]);
+			instances[insIndex] = deserializeCCObject(data, instances[insIndex], objs);
+		}
+
+		if (data[File.Refs]) {
+			dereference(data[File.Refs], instances, data[File.SharedStrings]);
 		}
 
 		parseResult(data);
@@ -447,7 +561,7 @@ class Deserialize {
 			let owner = dependObjs[i];
 			let key = dependKeys[i];
 			for (let k in owner) {
-				if (k === key) {
+				if (k == key) {
 					owner[k] = {
 						__uuid__: dependUuid,
 					}
@@ -464,7 +578,9 @@ let deserialize = new Deserialize();
 module.exports = {
 	deserialize,
 	File,
-	findClass,
 	lookupClasses,
 	cacheMasks,
+	DefaultBuiltinValueTypeSetters,
+	BuiltinValueType,
+	Refs,
 };

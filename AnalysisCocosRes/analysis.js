@@ -9,7 +9,7 @@ class Analysis {
 		let files = fs.readdirSync(dir);
 		for (let file of files) {
 			let bundlePath = dir + '/' + file;
-			if (fs.statSync(bundlePath).isDirectory()) {
+			if (fs.statSync(bundlePath).isDirectory() && file.startsWith('BigWin')) {
 				let bundle = file.split('.')[0];
 				this.analysisBundle(bundle, bundlePath);
 			}

@@ -2,7 +2,7 @@ let utils = require('../utils/utils.js');
 let path = require('path');
 let fs = require('fs');
 let { Pack } = require('./pack.js');
-const { findClass } = require('../deserialize/deserialize.js')
+const { findClass } = require('../deserialize/findClass.js')
 
 function processOptions(options) {
 	var uuids = options.uuids;
