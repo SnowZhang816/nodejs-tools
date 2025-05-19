@@ -143,15 +143,17 @@ class Image {
 			// 宽度左边裁剪长度
 			let trimXLeft = halfTrimX + offsetX;
 
-			let trimY = originalSize.width - size.width;
+			let trimY = originalSize.height - size.height;
 			let halfTrimY = trimY / 2;
-			let offsetY = info.offset[0];
-			// 宽度右边裁剪长度
-			let trimYRight = halfTrimY - offsetY;
-			// 宽度左边裁剪长度
-			let trimYLeft = halfTrimY + offsetY;
+			let offsetY = info.offset[1];
+			// 高度底部裁剪长度
+			let trimYBottom = halfTrimY + offsetY;
+			// 高度顶部裁剪长度
+			let trimYTop = halfTrimY - offsetY;
 
-			this.fillTransparentArea(data, trimXLeft, trimYLeft, trimXRight, trimYRight);
+			data = this.fillTransparentArea(data, width, height, trimXLeft, trimYTop, trimXRight, trimYBottom);
+			width = originalSize.width;
+			height = originalSize.height;
 		}
 
 		utils.ensureDirExist(filedir);
@@ -206,14 +208,49 @@ class Image {
 	/**
 	 * 根据left、top、right、bottom填充透明区域
 	 * @param {Buffer} data 原始的 RGBA 数据 (Buffer 类型)
+	 * @param {Number} width 原始图像的宽度
+	 * @param {Number} height 原始图像的高度
 	 * @param {Number} left 左边需要补充的长度 
 	 * @param {Number} top 上面需要补充的长度 
 	 * @param {Number} right 右边需要补充的长度 
 	 * @param {Number} bottom 下面需要补充的长度 
 	 */
-	fillTransparentArea(data, left, top, right, bottom) {
-		// 填充逻辑的实现...
+	fillTransparentArea(data, width, height, left, top, right, bottom) {
+		// 计算新图像的宽度和高度
+		const newWidth = width + left + right;
+		const newHeight = height + top + bottom;
 
+		// 创建一个新的 Buffer，用于存储填充后的图像数据
+		const newData = Buffer.alloc(newWidth * newHeight * 4);
+
+		// 将原始图像数据复制到新 Buffer 的中心位置
+		for (let y = 0; y < height; y++) {
+			for (let x = 0; x < width; x++) {
+				const srcIndex = (y * width + x) * 4;
+				const destIndex = ((y + top) * newWidth + (x + left)) * 4;
+
+				// 复制 RGBA 数据
+				newData[destIndex] = data[srcIndex];       // R
+				newData[destIndex + 1] = data[srcIndex + 1]; // G
+				newData[destIndex + 2] = data[srcIndex + 2]; // B
+				newData[destIndex + 3] = data[srcIndex + 3]; // A
+			}
+		}
+
+		// 将新 Buffer 的周围区域填充为透明
+		for (let y = 0; y < newHeight; y++) {
+			for (let x = 0; x < newWidth; x++) {
+				const index = y * newWidth + x;
+
+				// 检查是否位于原始图像区域外
+				if (x < left || x >= newWidth - right || y < top || y >= newHeight - bottom) {
+					// 填充透明（RGBA 中的 Alpha 通道值为 0）
+					newData[index * 4 + 3] = 0;
+				}
+			}
+		}
+
+		return newData;
 	}
 }
 
