@@ -1,9 +1,9 @@
 let utils = require('../utils/utils.js');
 let path = require('path');
-const { File, deserialize } = require('../deserialize/deserialize.js')
 let fs = require('fs');
+const { File, deserialize } = require('../deserialize/deserialize.js')
 
-class JsonAsset {
+class PhysicsMaterial {
 	export(assetInfo, destDir, bundleName, bundlePath) {
 		let packInfo = assetInfo.packInfo
 		if (packInfo) {
@@ -11,27 +11,30 @@ class JsonAsset {
 			let instances = packInfo[File.Instances];
 			if (instances && instances[rootIndex]) {
 				let jsonData = instances[rootIndex];
-				let destAsset = path.join(destDir, bundleName, `${assetInfo.path}.json`);
-				utils.writeFileSync(destAsset, JSON.stringify(jsonData.json, null, "\t"));
+				let data = {
+					"__type__": "cc.PhysicsMaterial"
+				}
+				let destAsset = path.join(destDir, bundleName, `${assetInfo.path}.pmtl`);
+				utils.writeFileSync(destAsset, JSON.stringify(data, null, '\t'));
 
 				// mate
 				let { GetMetaVersion } = require('../utils/MateVersionHelp.js');
-				let version = GetMetaVersion('cc.JsonAsset');
+				let version = GetMetaVersion('cc.PhysicsMaterial');
 				let json = {
 					"ver": version,
 					"uuid": assetInfo.uuid,
-					"importer": "json",
+					"importer": "physics-material",
+					"friction": jsonData._friction,
+					"restitution": jsonData._restitution,
 					"subMetas": {}
 				}
 
-				let metaDestAsset = path.join(destDir, bundleName, `${assetInfo.path}.json.meta`);
+				let metaDestAsset = path.join(destDir, bundleName, `${assetInfo.path}.pmtl.meta`);
 				utils.writeFileSync(metaDestAsset, JSON.stringify(json, null, "\t"));
-
 			}
 		}
 	}
 }
 
-
-let jsonAsset = new JsonAsset();
-module.exports = jsonAsset;
+let physicsMaterial = new PhysicsMaterial();
+module.exports = physicsMaterial;

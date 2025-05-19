@@ -14,6 +14,9 @@ if (args[0]) {
 function main(destPath) {
 	analysis.analysis(destPath)
 
+	let { globalInfo } = require('./utils/MateVersionHelp.js');
+	globalInfo.ENGINE_VERSION = "2.1.14";
+
 	analysis.exportsAssets("./out")
 }
 

@@ -86,11 +86,25 @@ class Image {
 
 	/**
 	 * 导出指定范围的图片数据到文件
-	 * @param {{x, y}} start 起始坐标
-	 * @param {{width, height}} size  长度高度
+	 * @param {{}} info 
 	 * @param {string} filedir 
 	 */
-	sharpToFile(start, size, rotated, filedir, cb) {
+
+	sharpToFile(info, filedir, cb) {
+		let start = {
+			x: info.rect[0],
+			y: info.rect[1]
+		};
+		let size = {
+			width: info.rect[2],
+			height: info.rect[3]
+		}
+		let originalSize = {
+			width: info.originalSize[0],
+			height: info.originalSize[1]
+		}
+		let rotated = info.rotated;
+
 		// 分配一个缓冲区用于存储图像数据
 		let data = Buffer.alloc(size.width * size.height * 4);
 		let width = size.width;
@@ -119,6 +133,26 @@ class Image {
 			data = this.rotateImage90CounterClockwise(data, height, width);
 		}
 
+		if (originalSize.width !== width || originalSize.height !== height) {
+			// 
+			let trimX = originalSize.width - size.width;
+			let halfTrimX = trimX / 2;
+			let offsetX = info.offset[0];
+			// 宽度右边裁剪长度
+			let trimXRight = halfTrimX - offsetX;
+			// 宽度左边裁剪长度
+			let trimXLeft = halfTrimX + offsetX;
+
+			let trimY = originalSize.width - size.width;
+			let halfTrimY = trimY / 2;
+			let offsetY = info.offset[0];
+			// 宽度右边裁剪长度
+			let trimYRight = halfTrimY - offsetY;
+			// 宽度左边裁剪长度
+			let trimYLeft = halfTrimY + offsetY;
+
+			this.fillTransparentArea(data, trimXLeft, trimYLeft, trimXRight, trimYRight);
+		}
 
 		utils.ensureDirExist(filedir);
 
@@ -167,6 +201,19 @@ class Image {
 		}
 
 		return rotatedBuffer;
+	}
+
+	/**
+	 * 根据left、top、right、bottom填充透明区域
+	 * @param {Buffer} data 原始的 RGBA 数据 (Buffer 类型)
+	 * @param {Number} left 左边需要补充的长度 
+	 * @param {Number} top 上面需要补充的长度 
+	 * @param {Number} right 右边需要补充的长度 
+	 * @param {Number} bottom 下面需要补充的长度 
+	 */
+	fillTransparentArea(data, left, top, right, bottom) {
+		// 填充逻辑的实现...
+
 	}
 }
 

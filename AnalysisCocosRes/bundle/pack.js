@@ -59,11 +59,6 @@ class Pack {
 			return rootInfo < 0;
 		}
 	}
-
-	getDependUuidList(json) {
-		let sharedUuids = json[File.SharedUuids];
-		return json[File.DependUuidIndices].map(index => utils.decodeUUID(sharedUuids[index]));
-	}
 }
 
 module.exports = { Pack, File };

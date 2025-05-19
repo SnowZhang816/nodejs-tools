@@ -2,8 +2,13 @@ let utils = require('../utils/utils.js');
 let path = require('path');
 const { File, deserialize, Refs } = require('../deserialize/deserialize.js')
 const { findClass } = require('../deserialize/findClass.js');
-
 let fs = require('fs');
+
+let OptimizationPolicyTypes = [
+	"AUTO",
+	"SINGLE_INSTANCE",
+	"MULTI_INSTANCE"
+]
 
 class Prefab {
 
@@ -42,20 +47,6 @@ class Prefab {
 			let objs = []
 			deserialize.parseInstances(packInfo, objs);
 			this.exportInstances(assetInfo, packInfo, objs, destDir, bundleName, bundlePath);
-		} else {
-			let uuid = assetInfo.uuid;
-			let importVer = assetInfo.ver;
-			let importAsset = path.join(bundlePath, `import/${uuid.slice(0, 2)}/${uuid}.json`);
-			if (importVer) {
-				importAsset = path.join(bundlePath, `import/${uuid.slice(0, 2)}/${uuid}.${importVer}.json`);
-			}
-			if (fs.existsSync(importAsset)) {
-				let data = fs.readFileSync(importAsset, 'utf8');
-				let packInfo = JSON.parse(data);
-				let objs = []
-				deserialize.parseInstances(packInfo, objs);
-				this.exportInstances(assetInfo, packInfo, objs, destDir, bundleName, bundlePath);
-			}
 		}
 	}
 
@@ -70,6 +61,23 @@ class Prefab {
 
 		let destAsset = path.join(destDir, bundleName, `${assetInfo.path}.prefab`);
 		utils.writeFileSync(destAsset, JSON.stringify(objs, null, '\t'));
+
+		// mate
+		let { GetMetaVersion } = require('../utils/MateVersionHelp.js');
+		let version = GetMetaVersion('cc.Prefab');
+		let info = packInfo[File.Instances][0];
+		let json = {
+			"ver": version,
+			"uuid": assetInfo.uuid,
+			"importer": "prefab",
+			"optimizationPolicy": OptimizationPolicyTypes[info.optimizationPolicy] || "AUTO",
+			"asyncLoadAssets": info.asyncLoadAssets,
+			"readonly": info.readonly,
+			"subMetas": {}
+		}
+
+		let metaDestAsset = path.join(destDir, bundleName, `${assetInfo.path}.prefab.meta`);
+		utils.writeFileSync(metaDestAsset, JSON.stringify(json, null, "\t"));
 	}
 }
 

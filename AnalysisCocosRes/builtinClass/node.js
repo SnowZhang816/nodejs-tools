@@ -1,5 +1,3 @@
-let { DefaultBuiltinValueTypeSetters, BuiltinValueType } = require('../deserialize/deserialize.js');
-
 class Node {
 	create() {
 		let t = {

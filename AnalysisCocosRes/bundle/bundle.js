@@ -1,4 +1,5 @@
 let Config = require('./config.js');
+let scene = require('../assets/scene.js');
 
 // const audioClip = require('../assets/audioClip.js');
 // const skeletonData = require('../assets/skeletonData.js');
@@ -30,23 +31,38 @@ class Bundle {
 	}
 
 	exportAssets(destDir) {
-		for (let [key, info] of this.config.assetInfos) {
-			if (info.ctor && info.ctor["export"]) {
-				let handler = info.ctor["export"]
-				handler.call(info.ctor, info, destDir, this.bundleName, this.bundlePath, this.config);
-			} else {
-				if (info.ctor) {
-					console.warn(`${info.ctor} has no handler`);
-				} else if (info.path) {
-					console.warn(`${info.path} has no ctor`);
+		// for (let [key, info] of this.config.assetInfos) {
+		// 	if (info.ctor && info.ctor["export"]) {
+		// 		let handler = info.ctor["export"]
+		// 		handler.call(info.ctor, info, destDir, this.bundleName, this.bundlePath, this.config);
+		// 	} else {
+		// 		if (info.ctor) {
+		// 			console.warn(`${info.ctor} has no handler`);
+		// 		} else if (info.path) {
+		// 			console.warn(`${info.path} has no ctor`);
+		// 		} else {
+		// 			console.warn(`${key} has no ctor and path`);
+		// 		}
+		// 	}
+		// }
+
+		for (let [key, assetInfos] of this.config.paths) {
+			for (let assetInfo of assetInfos) {
+				if (assetInfo.ctor && assetInfo.ctor["export"]) {
+					let handler = assetInfo.ctor["export"]
+					handler.call(assetInfo.ctor, assetInfo, destDir, this.bundleName, this.bundlePath, this.config);
 				} else {
-					console.warn(`${key} has no ctor and path`);
+					console.warn(`${key} has no handler`);
 				}
 			}
+		}
+
+		for (let [key, assetInfo] of this.config.scenes) {
+			scene.export(assetInfo, destDir, this.bundleName, this.bundlePath, this.config)
 		}
 	}
 }
 
 module.exports = {
 	Bundle: Bundle
-};
+}

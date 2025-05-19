@@ -157,6 +157,21 @@ class Config {
 				}
 			}
 		}
+
+		for (var assetInfo of this.assetInfos.values()) {
+			if (!assetInfo.packInfo) {
+				let uuid = assetInfo.uuid;
+				let importVer = assetInfo.ver;
+				let importPath = path.join(bundlePath, `import/${uuid.slice(0, 2)}/${uuid}.json`);
+				if (importVer) {
+					importPath = path.join(bundlePath, `import/${uuid.slice(0, 2)}/${uuid}.${importVer}.json`);
+				}
+				if (fs.existsSync(importPath)) {
+					let data = JSON.parse(fs.readFileSync(importPath, 'utf8'));
+					assetInfo.packInfo = data;
+				}
+			}
+		}
 	}
 
 	_initUuid(uuidList) {

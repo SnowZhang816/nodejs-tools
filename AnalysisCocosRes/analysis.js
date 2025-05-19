@@ -9,7 +9,7 @@ class Analysis {
 		let files = fs.readdirSync(dir);
 		for (let file of files) {
 			let bundlePath = dir + '/' + file;
-			if (fs.statSync(bundlePath).isDirectory() && file.startsWith('BigWin')) {
+			if (fs.statSync(bundlePath).isDirectory()) {
 				let bundle = file.split('.')[0];
 				this.analysisBundle(bundle, bundlePath);
 			}
@@ -37,6 +37,10 @@ class Analysis {
 		for (let bundle of this.bundles) {
 			bundle.exportAssets(destDir);
 		}
+	}
+
+	getBundle(bundleName) {
+		return this.bundleOfName[bundleName];
 	}
 }
 

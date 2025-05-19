@@ -105,93 +105,6 @@ const BuiltinValueType = {
 	Mat4: 7,
 }
 
-const DefaultBuiltinValueTypeSetters = [
-	// Vec2
-	function () {
-		return {
-			"__type__": "cc.Vec2",
-			"x": 0,
-			"y": 0
-		}
-	},
-	// Vec3
-	function () {
-		return {
-			"__type__": "cc.Vec3",
-			"x": 0,
-			"y": 0,
-			"z": 0
-		}
-	},
-	// Vec4
-	function () {
-		return {
-			"__type__": "cc.Vec4",
-			"x": 0,
-			"y": 0,
-			"z": 0,
-			"w": 0
-		}
-	},
-	// Quat
-	function (data) {
-		return {
-			"__type__": "cc.Quat",
-			"x": 0,
-			"y": 0,
-			"z": 0,
-			"w": 0
-		}
-	},
-	// Color
-	function () {
-		return {
-			"__type__": "cc.Color",
-			"r": 255,
-			"g": 255,
-			"b": 255,
-			"a": 255
-		}
-	},
-	// Size
-	function () {
-		return {
-			"__type__": "cc.Size",
-			"width": 0,
-			"height": 0
-		}
-	},
-	// Rect
-	function () {
-		return {
-			"__type__": "cc.Rect",
-			"x": 0,
-			"y": 0,
-			"width": 0,
-			"height": 0
-		}
-	},
-	// Mat4
-	function () {
-		return {
-			"__type__": "TypedArray",
-			"ctor": "Float64Array",
-			"array": [
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				1,
-				1,
-				1,
-				1
-			]
-		}
-	}
-];
-
 const BuiltinValueTypeSetters = [
 	// Vec2
 	function (data) {
@@ -500,7 +413,15 @@ function deserializeCCObject(data, objectData, objs) {
 		obj = ctor.create();
 	}
 
-	objs && objs.push(obj);
+	if (objs) {
+		if (Array.isArray(obj)) {
+			for (let i = 0; i < obj.length; ++i) {
+				objs.push(obj[i]);
+			}
+		} else {
+			objs.push(obj);
+		}
+	}
 
 	let keys = clazz[CLASS_KEYS];
 	let classTypeOffset = clazz[CLASS_PROP_TYPE_OFFSET];
@@ -528,6 +449,15 @@ function deserializeCCObject(data, objectData, objs) {
 
 class Deserialize {
 	parseInstances(data, objs) {
+		let version = data[File.Version];
+		if (typeof version === 'object') {
+			return;
+		} else {
+			data[File.Version] = {
+				version: version,
+				preprocessed: true
+			}
+		}
 		let instances = data[File.Instances];
 		let instanceTypes = data[File.InstanceTypes];
 		let instanceTypesLen = instanceTypes === 0 ? 0 : instanceTypes.length;
@@ -580,7 +510,6 @@ module.exports = {
 	File,
 	lookupClasses,
 	cacheMasks,
-	DefaultBuiltinValueTypeSetters,
 	BuiltinValueType,
 	Refs,
 };

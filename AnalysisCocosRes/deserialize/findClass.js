@@ -7,15 +7,23 @@ function findClass(type) {
 		return require('../assets/audioClip.js');
 	} else if (type === "cc.BitmapFont") {
 		return require('../assets/bitmapFont.js');
+	} else if (type === "cc.TTFFont") {
+		return require('../assets/TTFFont.js');
+	} else if (type === "cc.LabelAtlas") {
+		return require('../assets/LabelAtlas.js');
 	} else if (type === "cc.EffectAsset") {
 		return require('../assets/effectAsset.js');
 	} else if (type === "cc.JsonAsset") {
 		return require('../assets/json.js');
 	} else if (type === "cc.Material") {
 		return require('../assets/material.js');
+	} else if (type === "cc.Scene") {
+		return require('../assets/scene.js');
+	} else if (type === "cc.PhysicsMaterial") {
+		return require('../assets/PhysicsMaterial.js');
 	} else if (type === "cc.Prefab") {
 		return require('../assets/prefab.js');
-	} else if (type === "cc.SkeletonData") {
+	} else if (type === "sp.SkeletonData") {
 		return require('../assets/skeletonData.js');
 	} else if (type === "cc.SpriteAtlas") {
 		return require('../assets/spriteAtlas.js');
@@ -27,6 +35,8 @@ function findClass(type) {
 		return require('../builtinClass/node.js');
 	} else if (type === "cc.PrefabInfo") {
 		return require('../builtinClass/prefabInfo.js');
+	} else if (type === "cc.SceneAsset") {
+		return require('../builtinClass/SceneAsset.js');
 	} else if (type === "cc.Widget") {
 		return require('../builtinClass/UI/widget.js');
 	} else if (type === "cc.BlockInputEvents") {

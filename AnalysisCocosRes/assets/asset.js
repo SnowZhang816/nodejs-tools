@@ -1,6 +1,6 @@
 let utils = require('../utils/utils.js');
 let path = require('path');
-const { File } = require('../deserialize/deserialize.js')
+const { File, deserialize } = require('../deserialize/deserialize.js')
 let fs = require('fs');
 
 class Asset {
@@ -11,9 +11,12 @@ class Asset {
 
 		let packInfo = assetInfo.packInfo
 		if (packInfo) {
-			let info = packInfo[File.Instances];
-			if (info) {
-				let ext = info[0][2];
+			let rootIndex = deserialize.parseInstances(packInfo);
+			let instances = packInfo[File.Instances];
+			if (instances && instances[rootIndex]) {
+				let jsonData = instances[rootIndex];
+				let ext = jsonData._native
+
 				let srcAsset = path.join(bundlePath, `native/${uuid.slice(0, 2)}/${uuid}${ext}`);
 				if (nativeVer) {
 					srcAsset = path.join(bundlePath, `native/${uuid.slice(0, 2)}/${uuid}.${nativeVer}${ext}`);
@@ -22,31 +25,21 @@ class Asset {
 				if (fs.existsSync(srcAsset)) {
 					utils.copyDirOrFile(srcAsset, destAsset);
 				}
-			}
-		} else {
-			let importVer = assetInfo.ver;
-			let importAsset = path.join(bundlePath, `import/${uuid.slice(0, 2)}/${uuid}.json`);
-			if (importVer) {
-				importAsset = path.join(bundlePath, `import/${uuid.slice(0, 2)}/${uuid}.${importVer}.json`);
-			}
-			if (fs.existsSync(importAsset)) {
-				let data = fs.readFileSync(importAsset, 'utf8');
-				let json = JSON.parse(data);
-				let info = json[File.Instances];
-				if (info) {
-					let ext = info[0][2];
-					let srcAsset = path.join(bundlePath, `native/${uuid.slice(0, 2)}/${uuid}${ext}`);
-					if (nativeVer) {
-						srcAsset = path.join(bundlePath, `native/${uuid.slice(0, 2)}/${uuid}.${nativeVer}${ext}`);
-					}
 
-					let destAsset = path.join(destDir, bundleName, `${assetInfo.path}${ext}`);
-					if (fs.existsSync(srcAsset)) {
-						utils.copyDirOrFile(srcAsset, destAsset);
-					}
+
+				// mate
+				let { GetMetaVersion } = require('../utils/MateVersionHelp.js');
+				let version = GetMetaVersion('cc.AudioClip');
+				let json = {
+					"ver": version,
+					"uuid": assetInfo.uuid,
+					"importer": "asset",
+					"subMetas": {}
 				}
-			}
 
+				let metaDestAsset = path.join(destDir, bundleName, `${assetInfo.path}${ext}.meta`);
+				utils.writeFileSync(metaDestAsset, JSON.stringify(json, null, "\t"));
+			}
 		}
 	}
 }

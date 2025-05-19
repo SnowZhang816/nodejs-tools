@@ -6,10 +6,6 @@ let fs = require('fs');
 class EffectAsset {
 	create() {
 		let jsonData = {};
-		jsonData.__type__ = 'cc.Material';
-		jsonData._objFlags = 0;
-		jsonData._native = '';
-		jsonData._effectAsset = null;
 		return jsonData;
 	}
 
@@ -20,28 +16,45 @@ class EffectAsset {
 			let instances = packInfo[File.Instances];
 			if (instances && instances[rootIndex]) {
 				let jsonData = instances[rootIndex];
-				let destAsset = path.join(destDir, bundleName, `${assetInfo.path}.mtl`);
+				let destAsset = path.join(destDir, bundleName, `${assetInfo.path}.effect`);
 				utils.writeFileSync(destAsset, JSON.stringify(jsonData, null, '\t'));
-			}
-		} else {
-			let uuid = assetInfo.uuid;
-			let importVer = assetInfo.ver;
-			let importAsset = path.join(bundlePath, `import/${uuid.slice(0, 2)}/${uuid}.json`);
-			if (importVer) {
-				importAsset = path.join(bundlePath, `import/${uuid.slice(0, 2)}/${uuid}.${importVer}.json`);
-			}
-			if (fs.existsSync(importAsset)) {
-				let data = fs.readFileSync(importAsset, 'utf8');
-				let packInfo = JSON.parse(data);
-				let rootIndex = deserialize.parseInstances(packInfo);
-				let instances = packInfo[File.Instances];
-				if (instances && instances[rootIndex]) {
-					let jsonData = instances[rootIndex];
-					let destAsset = path.join(destDir, bundleName, `${assetInfo.path}.mtl`);
-					utils.writeFileSync(destAsset, JSON.stringify(jsonData, null, '\t'));
+
+				let vert = path.join(destDir, bundleName, `${assetInfo.path}.vert`);
+				utils.writeFileSync(vert, jsonData.shaders[0].glsl3.vert);
+
+				let frag = path.join(destDir, bundleName, `${assetInfo.path}.frag`);
+				utils.writeFileSync(frag, jsonData.shaders[0].glsl3.frag);
+
+				// mate
+				let { GetMetaVersion } = require('../utils/MateVersionHelp.js');
+				let version = GetMetaVersion('cc.EffectAsset');
+				let json = {
+					"ver": version,
+					"uuid": assetInfo.uuid,
+					"importer": "effect",
+					"compiledShaders": [
+					],
+					"subMetas": {}
 				}
+
+				let shaders = jsonData.shaders;
+				for (let i = 0; i < shaders.length; ++i) {
+					let shader = shaders[i];
+					json.compiledShaders.push({
+						glsl1: shader.glsl1,
+						glsl3: shader.glsl3,
+					});
+				}
+
+				let metaDestAsset = path.join(destDir, bundleName, `${assetInfo.path}.effect.meta`);
+				utils.writeFileSync(metaDestAsset, JSON.stringify(json, null, "\t"));
 			}
 		}
+	}
+
+	exportEffect(jsonData, assetInfo, destDir, bundleName, bundlePath) {
+		let CCEffect = `CCEffect %{\n`
+
 	}
 }
 
