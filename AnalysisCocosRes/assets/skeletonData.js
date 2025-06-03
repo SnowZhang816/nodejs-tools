@@ -37,6 +37,10 @@ class SkeletonData {
 			}
 		}
 	}
+
+	isSkeletonClass(ctor) {
+		return ctor instanceof SkeletonData;
+	}
 }
 
 let skeletonData = new SkeletonData();

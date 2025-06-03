@@ -31,21 +31,6 @@ class Bundle {
 	}
 
 	exportAssets(destDir) {
-		// for (let [key, info] of this.config.assetInfos) {
-		// 	if (info.ctor && info.ctor["export"]) {
-		// 		let handler = info.ctor["export"]
-		// 		handler.call(info.ctor, info, destDir, this.bundleName, this.bundlePath, this.config);
-		// 	} else {
-		// 		if (info.ctor) {
-		// 			console.warn(`${info.ctor} has no handler`);
-		// 		} else if (info.path) {
-		// 			console.warn(`${info.path} has no ctor`);
-		// 		} else {
-		// 			console.warn(`${key} has no ctor and path`);
-		// 		}
-		// 	}
-		// }
-
 		for (let [key, assetInfos] of this.config.paths) {
 			for (let assetInfo of assetInfos) {
 				if (assetInfo.ctor && assetInfo.ctor["export"]) {

@@ -451,7 +451,7 @@ class Deserialize {
 	parseInstances(data, objs) {
 		let version = data[File.Version];
 		if (typeof version === 'object') {
-			return;
+			return 0;
 		} else {
 			data[File.Version] = {
 				version: version,

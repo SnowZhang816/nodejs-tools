@@ -35,6 +35,8 @@ function GetMetaVersion(ctor) {
 			return "1.1.2"
 		} else if (ctor == "cc.Scene") {
 			return "1.3.2"
+		} else if (ctor == "cc.TextAsset") {
+			return "1.0.1"
 		}
 	}
 }

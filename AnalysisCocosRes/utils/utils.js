@@ -5,6 +5,7 @@
  * base64->uuid 就是将2个base64字符(12位)，转换成3个uuid字符(12位)。
  * ex: fc991dd7-0033-4b80-9d41-c8a86a702e59 -> fcmR3XADNLgJ1ByKhqcC5Z
  */
+const { randomInt } = require('crypto');
 const fs = require('fs-extra');
 const path = require('path');
 
@@ -28,6 +29,25 @@ var Indices = UuidTemplate.map(function (x, i) {
 }).filter(isFinite);
 
 class Utils {
+
+	/**
+	 *	是否UUID 
+	 */
+	isUuid(uuid) {
+		//uuid: fc991dd7-0033-4b80-9d41-c8a86a702e59
+		return /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(uuid);
+	}
+
+	/**
+	 * 根据当前的时间戳生产一个UUID
+	 */
+	generateUUID() {
+		let date = new Date();
+		let time = date.getTime() + date.getMilliseconds() + randomInt(100000000);
+		let uuid = this.encodeUUID(time.toString(16));
+		return uuid;
+	}
+
 	/**
 	 * base64->uuid
 	 * @param {*} base64

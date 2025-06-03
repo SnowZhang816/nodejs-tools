@@ -1,7 +1,22 @@
 const sharp = require('sharp');
 const utils = require('./utils.js');
 
+const ImageType = {
+	PNG: 0,
+	JPG: 1,
+	ASTC: 2,
+	ETC: 3,
+	WEBP: 4,
+	PVRTC: 5
+}
+
 class Image {
+	// 原始路径
+	file = ''
+	// 图片类型
+	type = ImageType.PNG;
+	// channel
+	channel = 0;
 	// 原始数据
 	data = null;
 	// 宽度
@@ -10,6 +25,11 @@ class Image {
 	height = 0;
 	// 纹理数据
 	textureData = null;
+
+	constructor(file) {
+		this.file = file;
+	}
+
 	/**
 	 * 初始化图片数据
 	 * @param {Buffer} data 
@@ -21,16 +41,28 @@ class Image {
 		// 读取文件魔数
 		let magic = new Uint8Array(data, 0, 4);
 		if (magic[0] === 0x89 && magic[1] === 0x50 && magic[2] === 0x4E && magic[3] === 0x47) {
+			// PNG
+			this.type = ImageType.PNG;
 			this.initWithPng(data, cb);
 		} else if (magic[0] === 0x52 && magic[1] === 0x49 && magic[2] === 0x46 && magic[3] === 0x46) {
+			// WebP
+			this.type = ImageType.WEBP;
 			this.initWithWebp(data, cb);
 		} else if (magic[0] === 0x5D && magic[1] === 0xB8 && magic[2] === 0x60 && magic[3] === 0xA1) {
+			// ASTC
+			this.type = ImageType.ASTC;
 			this.initWithAstc(data, cb);
 		} else if (magic[0] === 0x45 && magic[1] === 0x54 && magic[2] === 0x43) {
+			// ETC
+			this.type = ImageType.ETC;
 			this.initWithEtc(data, cb);
 		} else if (magic[0] === 0xFF && magic[1] === 0xD8) {
+			// JPG
+			this.type = ImageType.JPG;
 			this.initWithJpg(data, cb);
 		} else if (magic[0] === 0x50 && magic[1] === 0x56 && magic[2] === 0x52) {
+			// PVRTC
+			this.type = ImageType.PVRTC;
 			this.initWithPvr(data, cb);
 		}
 	}
@@ -74,8 +106,9 @@ class Image {
 				const rgbaData = buffer;
 				const width = info.width;
 				const height = info.height;
-				const channels = 4; // RGBA 有 4 个通道
+				const channels = info.channels; // RGBA 有 4 个通道
 
+				this.channel = channels;
 				this.width = width;
 				this.height = height;
 				this.textureData = buffer;
@@ -87,10 +120,12 @@ class Image {
 	/**
 	 * 导出指定范围的图片数据到文件
 	 * @param {{}} info 
+	 * @param {string} atlasPath 原始图片位置
 	 * @param {string} filedir 
 	 */
 
-	sharpToFile(info, filedir, cb) {
+	sharpToFile(info, atlasPath, filedir, cb) {
+		console.log("导出图片", atlasPath, filedir, this.channel);
 		let start = {
 			x: info.rect[0],
 			y: info.rect[1]
@@ -106,22 +141,22 @@ class Image {
 		let rotated = info.rotated;
 
 		// 分配一个缓冲区用于存储图像数据
-		let data = Buffer.alloc(size.width * size.height * 4);
+		let data = Buffer.alloc(size.width * size.height * this.channel);
 		let width = size.width;
 		let height = size.height;
 		// 计算源图像和目标图像的步长
-		let srcStride = this.width * 4;
-		let dstStride = width * 4;
+		let srcStride = this.width * this.channel;
+		let dstStride = width * this.channel;
 		let desHeight = height
 		if (rotated) {
-			dstStride = height * 4;
+			dstStride = height * this.channel;
 			desHeight = width;
 		}
 
 		// 遍历目标图像的高度
 		for (let y = 0; y < desHeight; y++) {
 			// 计算源图像偏移量
-			const srcOffset = ((start.y + y) * srcStride) + (start.x * 4);
+			const srcOffset = ((start.y + y) * srcStride) + (start.x * this.channel);
 			// 计算目标图像偏移量
 			const dstOffset = y * dstStride;
 			// 从源图像缓冲区复制数据到目标缓冲区
@@ -133,7 +168,7 @@ class Image {
 			data = this.rotateImage90CounterClockwise(data, height, width);
 		}
 
-		if (originalSize.width !== width || originalSize.height !== height) {
+		if (originalSize.width !== width || originalSize.height !== height && this.type !== ImageType.JPG) {
 			// 
 			let trimX = originalSize.width - size.width;
 			let halfTrimX = trimX / 2;
@@ -159,7 +194,7 @@ class Image {
 		utils.ensureDirExist(filedir);
 
 		// 使用sharp库处理图像数据并保存到文件
-		sharp(data, { raw: { width: width, height: height, channels: 4 } }).toFile(filedir, (err, info) => {
+		sharp(data, { raw: { width: width, height: height, channels: this.channel } }).toFile(filedir, (err, info) => {
 			// 如果处理图像时出现错误
 			if (err) {
 				console.error('处理图像时出错:', err);
@@ -207,7 +242,7 @@ class Image {
 
 	/**
 	 * 根据left、top、right、bottom填充透明区域
-	 * @param {Buffer} data 原始的 RGBA 数据 (Buffer 类型)
+	 * @param {Buffer} data 原始的 RGBA or RGB 数据 (Buffer 类型)
 	 * @param {Number} width 原始图像的宽度
 	 * @param {Number} height 原始图像的高度
 	 * @param {Number} left 左边需要补充的长度 

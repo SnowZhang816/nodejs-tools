@@ -287,7 +287,7 @@ class Config {
 			if (type) {
 				for (var i = 0, l = items.length; i < l; i++) {
 					var assetInfo = items[i];
-					if (assetInfo.ctor === type) {
+					if (assetInfo.ctor instanceof type) {
 						return assetInfo;
 					}
 				}

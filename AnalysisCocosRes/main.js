@@ -1,7 +1,8 @@
 const args = process.argv.slice(2);
 const { analysis } = require("./analysis.js")
 
-let analysisPath = 'D:\\work\\casualslots\\build\\web-mobile\\assets'
+// let analysisPath = 'D:\\work\\casualslots\\build\\web-mobile\\assets'
+let analysisPath = 'D:\\test\\assets'
 if (args[0]) {
 	analysisPath = args[0]
 }

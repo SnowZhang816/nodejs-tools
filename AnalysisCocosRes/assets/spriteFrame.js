@@ -49,13 +49,53 @@ class SpriteFrame {
 			let rootIndex = deserialize.parseInstances(packInfo);
 			let info = packInfo[File.Instances];
 			if (info) {
-				let destAsset = path.join(destDir, bundleName, `${assetInfo.path}.png`);
-				this.handlerDepends(assetInfo, packInfo, destAsset, destDir, bundleName, bundlePath, config);
+				this.handlerDepends(assetInfo, packInfo, destDir, bundleName, bundlePath, config);
+			}
+		} else {
+			let texture2D = require('./texture.js');
+			let textureInfo = config.getInfoWithPath(assetInfo.path, texture2D.constructor);
+			if (textureInfo) {
+				let packInfo = textureInfo.packInfo
+				if (packInfo) {
+					let rootIndex = deserialize.parseInstances(packInfo);
+					let instances = packInfo[File.Instances];
+					if (instances && instances[rootIndex]) {
+						let jsonData = instances[rootIndex];
+						let uuid = textureInfo.uuid;
+						let fields = jsonData.split(',');
+						// decode extname
+						let extIdStr = fields[0];
+						let extIds = extIdStr.split('_');
+						let extId = parseInt(extIds[0]);
+						if (!Number.isNaN(extId)) {
+							// copy texture
+							let ext = extNames[extId];
+							let texturePath = path.join(bundlePath, `native/${uuid.slice(0, 2)}/${uuid}${ext}`);
+							if (textureInfo.nativeVer) {
+								texturePath = path.join(bundlePath, `native/${uuid.slice(0, 2)}/${uuid}.${textureInfo.nativeVer}${ext}`);
+							}
+
+							let destAsset = path.join(destDir, bundleName, `${assetInfo.path}${ext}`);
+							if (fs.existsSync(texturePath)) {
+								const Image = require('../utils/image.js');
+								let image = new Image(texturePath);
+								let data = fs.readFileSync(texturePath);
+								image.initWithData(data, (success) => {
+									// mate
+									if (success) {
+										utils.copyDirOrFile(texturePath, destAsset);
+										this.exportPngMate(textureInfo, assetInfo, destDir, bundleName, bundlePath, ext, image.width, image.height);
+									}
+								})
+							}
+						}
+					}
+				}
 			}
 		}
 	}
 
-	handlerDepends(assetInfo, packInfo, destAsset, destDir, bundleName, bundlePath, config) {
+	handlerDepends(assetInfo, packInfo, destDir, bundleName, bundlePath, config) {
 		let depends = packInfo[File.DependUuidIndices];
 		if (depends && depends.length > 0) {
 			let dependTextureUuid = utils.decodeUUID(depends[0]);
@@ -80,21 +120,25 @@ class SpriteFrame {
 					if (textureAssetInfo.nativeVer) {
 						texturePath = path.join(bundlePath, `native/${dependTextureUuid.slice(0, 2)}/${dependTextureUuid}.${textureAssetInfo.nativeVer}${ext}`);
 					}
-					this.importPngFromAtlas(texturePath, info, destAsset, extId);
+					if (ext != ".jpg") {
+						ext = ".png";
+					}
+					let destAsset = path.join(destDir, bundleName, `${assetInfo.path}${ext}`);
+					this.importPngFromAtlas(texturePath, info, destAsset, ext);
 
 					// mate
-					this.exportPngMate(textureAssetInfo, assetInfo, destDir, bundleName, bundlePath, ".png");
+					this.exportPngMate(textureAssetInfo, assetInfo, destDir, bundleName, bundlePath, ext);
 				}
 			}
 			// }
 		}
 	}
 
-	importPngFromAtlas(atlasPath, infos, destDir, extId) {
+	importPngFromAtlas(atlasPath, infos, destDir, ext) {
 		imageMgr.addImage(atlasPath, (success, image) => {
 			if (image) {
 				let info = infos[0];
-				image.sharpToFile(info, destDir, (success1) => {
+				image.sharpToFile(info, atlasPath, destDir, (success1) => {
 					if (success1) {
 						// console.log(`${destDir} export success`);
 					}
@@ -103,7 +147,7 @@ class SpriteFrame {
 		});
 	}
 
-	exportPngMate(textureAssetInfo, spriteFrameAssetInfo, destDir, bundleName, bundlePath, ext) {
+	exportPngMate(textureAssetInfo, spriteFrameAssetInfo, destDir, bundleName, bundlePath, ext, width = 0, height = 0) {
 		// mate
 		let { GetMetaVersion } = require('../utils/MateVersionHelp.js');
 
@@ -111,13 +155,30 @@ class SpriteFrame {
 		let textureInfo = texturePackInfo[File.Instances][0];
 		let fields = textureInfo.split(',');
 		let spriteFramePackInfo = spriteFrameAssetInfo.packInfo;
-		let spriteFrameInfo = spriteFramePackInfo[File.Instances][0];
-		let capInsets = spriteFrameInfo.capInsets;
+		let capInsets = [0, 0, 0, 0]
+		let originalSize = [width, height];
+		let temps = spriteFrameAssetInfo.path.split('/')
+		let name = temps[temps.length - 1];
+		let offset = [0, 0]
+		let rect = [0, 0, width, height]
+		if (spriteFramePackInfo && spriteFramePackInfo[File.Instances] && spriteFramePackInfo[File.Instances][0]) {
+			let spriteFrameInfo = spriteFramePackInfo[File.Instances][0];
+			capInsets = spriteFrameInfo.capInsets;
+			originalSize = spriteFrameInfo.originalSize;
+			name = spriteFrameInfo.name;
+			offset = spriteFrameInfo.offset;
+			rect = spriteFrameInfo.rect;
+		}
+
+		let rawUuid = textureAssetInfo.uuid;
+		if (!utils.isUuid(rawUuid)) {
+			rawUuid = utils.generateUUID();
+		}
 
 		let version = GetMetaVersion('cc.Texture2D');
 		let json = {
 			"ver": version,
-			"uuid": textureAssetInfo.uuid,
+			"uuid": rawUuid,
 			"importer": "texture",
 			"type": "sprite",
 			"wrapMode": getModeStr(fields[1]),
@@ -125,30 +186,30 @@ class SpriteFrame {
 			"premultiplyAlpha": fields[5].charCodeAt(0) === CHAR_CODE_1,
 			"genMipmaps": fields[6].charCodeAt(0) === CHAR_CODE_1,
 			"packable": fields[7].charCodeAt(0) === CHAR_CODE_1,
-			"width": spriteFrameInfo.originalSize[0],
-			"height": spriteFrameInfo.originalSize[1],
+			"width": originalSize[0],
+			"height": originalSize[1],
 			"platformSettings": {},
 			"subMetas": {
 
 			}
 		}
 		let spVersion = GetMetaVersion('cc.SpriteFrame');
-		json.subMetas[spriteFrameInfo.name] = {
+		json.subMetas[name] = {
 			"ver": spVersion,
 			"uuid": spriteFrameAssetInfo.uuid,
 			"importer": "sprite-frame",
-			"rawTextureUuid": textureAssetInfo.uuid,
+			"rawTextureUuid": rawUuid,
 			"trimType": "custom",
 			"trimThreshold": 1,
 			"rotated": false,
-			"offsetX": spriteFrameInfo.offset[0],
-			"offsetY": spriteFrameInfo.offset[1],
-			"trimX": spriteFrameInfo.originalSize[0] - spriteFrameInfo.rect[2],
-			"trimY": spriteFrameInfo.originalSize[1] - spriteFrameInfo.rect[3],
-			"width": spriteFrameInfo.rect[2],
-			"height": spriteFrameInfo.rect[3],
-			"rawWidth": spriteFrameInfo.originalSize[0],
-			"rawHeight": spriteFrameInfo.originalSize[1],
+			"offsetX": offset[0],
+			"offsetY": offset[1],
+			"trimX": originalSize[0] - rect[2],
+			"trimY": originalSize[1] - rect[3],
+			"width": rect[2],
+			"height": rect[3],
+			"rawWidth": originalSize[0],
+			"rawHeight": originalSize[1],
 			"borderTop": capInsets[0],
 			"borderBottom": capInsets[1],
 			"borderLeft": capInsets[2],

@@ -558,7 +558,7 @@ class CashGame {
 		} else if (this.multiplier >= 5 * 100) {
 			this.step = 5
 		} else if (this.multiplier >= 2 * 100) {
-			this.step = 2
+			this.step = 1
 		}
 
 		let busted = false;

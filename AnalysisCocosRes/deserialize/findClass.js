@@ -15,6 +15,8 @@ function findClass(type) {
 		return require('../assets/effectAsset.js');
 	} else if (type === "cc.JsonAsset") {
 		return require('../assets/json.js');
+	} else if (type === "cc.TextAsset") {
+		return require('../assets/TextAsset.js');
 	} else if (type === "cc.Material") {
 		return require('../assets/material.js');
 	} else if (type === "cc.Scene") {
@@ -30,7 +32,7 @@ function findClass(type) {
 	} else if (type === "cc.SpriteFrame") {
 		return require('../assets/spriteFrame.js');
 	} else if (type === "cc.Texture2D") {
-		return require('../assets/texture2d.js');
+		return require('../assets/texture.js');
 	} else if (type === "cc.Node") {
 		return require('../builtinClass/node.js');
 	} else if (type === "cc.PrefabInfo") {
@@ -181,6 +183,45 @@ function findClass(type) {
 	}
 }
 
+function findType(ctor) {
+	if (ctor instanceof require('../assets/animationClip.js')) {
+		return "cc.AnimationClip";
+	} else if (ctor instanceof require('../assets/asset.js')) {
+		return "cc.Asset";
+	} else if (ctor instanceof require('../assets/audioClip.js')) {
+		return "cc.AudioClip";
+	} else if (ctor instanceof require('../assets/bitmapFont.js')) {
+		return "cc.BitmapFont";
+	} else if (ctor instanceof require('../assets/TTFFont.js')) {
+		return "cc.TTFFont";
+	} else if (ctor instanceof require('../assets/LabelAtlas.js')) {
+		return "cc.LabelAtlas";
+	} else if (ctor instanceof require('../assets/effectAsset.js')) {
+		return "cc.EffectAsset";
+	} else if (ctor instanceof require('../assets/json.js')) {
+		return "cc.JsonAsset";
+	} else if (ctor instanceof require('../assets/TextAsset.js')) {
+		return "cc.TextAsset";
+	} else if (ctor instanceof require('../assets/material.js')) {
+		return "cc.Material";
+	} else if (ctor instanceof require('../assets/scene.js')) {
+		return "cc.Scene";
+	} else if (ctor instanceof require('../assets/PhysicsMaterial.js')) {
+		return "cc.PhysicsMaterial";
+	} else if (ctor instanceof require('../assets/prefab.js')) {
+		return "cc.Prefab";
+	} else if (ctor instanceof require('../assets/skeletonData.js')) {
+		return "sp.SkeletonData";
+	} else if (ctor instanceof require('../assets/spriteAtlas.js')) {
+		return "cc.SpriteAtlas";
+	} else if (ctor instanceof require('../assets/spriteFrame.js')) {
+		return "cc.SpriteFrame";
+	} else if (ctor instanceof require('../assets/texture.js')) {
+		return "cc.Texture2D";
+	}
+}
+
 module.exports = {
-	findClass: findClass
+	findClass: findClass,
+	findType: findType
 };

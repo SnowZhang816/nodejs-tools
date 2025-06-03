@@ -22,7 +22,7 @@ class ImageMgr {
 		this.processing[path] = [cb];
 
 		let data = fs.readFileSync(path);
-		let image = new Image();
+		let image = new Image(path);
 		image.initWithData(data, (success) => {
 			if (success) {
 				this.imageOfPath[path] = image;
