@@ -39,7 +39,7 @@ export class BundleCache {
 	installProgress = 0.1;
 
 	bundleCacheName = 'bundle';
-	installTagCacheName = 'instalTag';
+	installTagCacheName = 'installTag';
 
 	href = '';
 	ignoredHosts: string[] = [];
