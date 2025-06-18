@@ -1,3 +1,5 @@
+import { Logger } from './Logger';
+
 importScripts('./libs/jszip.min.js');
 
 type MimeTypeMap = {
@@ -53,13 +55,13 @@ export class BundleCache {
 
 	onMessage(evt: ExtendableMessageEvent) {
 		if (evt.data.what === 'installBundle') {
-			console.log('installBundle', evt);
+			Logger.log('installBundle', evt);
 			this.installBundle(evt);
 		} else if (evt.data.what === 'skipWaiting') {
 			self.skipWaiting();
 		} else if (evt.data.what === 'setIgnoreHosts') {
 			this.ignoredHosts = evt.data.hosts;
-			console.log('setIgnoreHosts', this.ignoredHosts);
+			Logger.log('setIgnoreHosts', this.ignoredHosts);
 			if (evt.source) {
 				evt.source.postMessage({
 					what: 'setIgnoreHostsComplete',
@@ -67,10 +69,18 @@ export class BundleCache {
 			}
 		} else if (evt.data.what === 'setHref') {
 			this.href = evt.data.href;
-			console.log('setHref', this.href);
+			Logger.log('setHref', this.href);
 			if (evt.source) {
 				evt.source.postMessage({
 					what: 'setHrefComplete',
+				});
+			}
+		} else if (evt.data.what === 'setLoggerLevel') {
+			let info = evt.data.data;
+			Logger.init(info.level, info.isVConsole);
+			if (evt.source) {
+				evt.source.postMessage({
+					what: 'setLoggerLevelComplete',
 				});
 			}
 		}
@@ -105,7 +115,7 @@ export class BundleCache {
 						.then((response: Response | undefined) => {
 							if (response) {
 								response.json().then((data) => {
-									console.log('getInstall', data);
+									Logger.log('getInstall', data);
 									resolve(data);
 								});
 							} else {
@@ -142,7 +152,7 @@ export class BundleCache {
 		let version = evt.data.version;
 
 		if (this.getIsInstalling(bundle, version)) {
-			console.log('bundle is installing', bundle);
+			Logger.log('bundle is installing', bundle);
 			let sources = this.notifySources.get(bundle);
 			if (sources) {
 				sources.push(evt.source);
@@ -160,8 +170,8 @@ export class BundleCache {
 				if (version) {
 					url = `assets/${bundle}.${version}.zip`;
 				}
-				console.time(`${bundle} fetch`);
-				console.log(`${bundle} fetch start`);
+				let times = Date.now();
+				Logger.log(`${bundle} fetch start`);
 				fetch(url).then((response) => {
 					if (!response.ok) {
 						this.notifyBundleInstallError(evt, bundle, 'fetch error');
@@ -190,8 +200,9 @@ export class BundleCache {
 									position += chunk.length;
 								}
 								that.notifyBundleInstallProgress(evt, bundle, that.downloadProgress + that.connectProgress);
-								console.log(`${bundle} fetch end`);
-								console.timeEnd(`${bundle} fetch`);
+								Logger.log(`${bundle} fetch end`);
+								let now = Date.now();
+								Logger.log(`${bundle} fetch time: ${now - times}`);
 								// 读取完成，处理 buffer
 								that.saveBundle(evt, buffer, bundle, version);
 								return;
@@ -211,7 +222,7 @@ export class BundleCache {
 				});
 			} else {
 				let oldVersion = result.version;
-				console.log('bundle already installed', bundle, oldVersion);
+				Logger.log('bundle already installed', bundle, oldVersion);
 				this.notifyBundleInstallProgress(evt, bundle, 1);
 				this.notifyBundleInstallDone(evt, bundle);
 			}
@@ -220,8 +231,8 @@ export class BundleCache {
 
 	saveBundle(evt: ExtendableMessageEvent, buffer: Uint8Array, bundle: string, version: string) {
 		return new Promise<void>((resolve, reject) => {
-			console.time(`${bundle} unzip`);
-			console.log(`${bundle} unzip start`);
+			let times = Date.now();
+			Logger.log(`${bundle} unzip start`);
 			// @ts-ignore
 			let zipObj: JSZip = new JSZip();
 			zipObj
@@ -230,21 +241,21 @@ export class BundleCache {
 					this.notifyBundleInstallProgress(evt, bundle, this.connectProgress + this.downloadProgress + this.unzipProgress);
 					this.unzipEntry(evt, zip, bundle)
 						.then(() => {
-							// console.log('unzipEntry done', bundle);
 							this.saveInstall(bundle, version);
-							console.log(`${bundle} unzip end`);
-							console.timeEnd(`${bundle} unzip`);
+							Logger.log(`${bundle} unzip end`);
+							let now = Date.now();
+							Logger.log(`${bundle} unzip time: ${now - times}`);
 							this.notifyBundleInstallDone(evt, bundle);
 							resolve();
 						})
 						.catch((error) => {
-							console.log('Error unzipping entry:', error);
+							Logger.log('Error unzipping entry:', error);
 							this.notifyBundleInstallError(evt, bundle, error);
 							reject(error);
 						});
 				})
 				.catch((error) => {
-					console.log('Error loading zip file:', error);
+					Logger.log('Error loading zip file:', error);
 					this.notifyBundleInstallError(evt, bundle, error);
 					reject(error);
 				});
@@ -259,7 +270,6 @@ export class BundleCache {
 					list.push(file);
 				}
 			});
-			console.log('file list', list, bundle);
 
 			caches
 				.open(this.bundleCacheName)
@@ -291,12 +301,12 @@ export class BundleCache {
 												resolve1();
 											})
 											.catch((error) => {
-												console.log('cache error', file.name, error);
+												Logger.error('cache error', file.name, error);
 												reject1(error);
 											});
 									})
 									.catch((error: any) => {
-										console.log('file error', file.name, error);
+										Logger.error('file error', file.name, error);
 										reject1(error);
 									});
 							})
@@ -308,12 +318,12 @@ export class BundleCache {
 							resolve();
 						})
 						.catch((error) => {
-							console.log('cache error', error);
+							Logger.error('cache error', error);
 							reject(error);
 						});
 				})
 				.catch((error) => {
-					console.log('open cache error', error);
+					Logger.error('open cache error', error);
 					reject(error);
 				});
 		});
@@ -321,7 +331,6 @@ export class BundleCache {
 
 	notifyBundleInstallProgress(evt: ExtendableMessageEvent, bundle: string, progress: number) {
 		if (evt.source) {
-			// console.log('notifyBundleInstallProgress', bundle, progress);
 			evt.source.postMessage({
 				what: 'bundleInstallProgress',
 				progress: progress,
@@ -347,7 +356,7 @@ export class BundleCache {
 	notifyBundleInstallDone(evt: ExtendableMessageEvent, bundle: string) {
 		// 删除安装列表中的bundle
 		this.installBundles = this.installBundles.filter((b) => b !== bundle);
-		console.log('notifyBundleInstallDone1', bundle);
+		Logger.log('notifyBundleInstallDone1', bundle);
 		if (evt.source) {
 			evt.source.postMessage({
 				what: 'bundleInstallDone',
@@ -407,16 +416,15 @@ export class BundleCache {
 					cache
 						.put(request, response)
 						.then(() => {
-							console.log('cache put success', request.url);
 							resolve(true);
 						})
 						.catch((error) => {
-							console.log('cache put error', error);
+							Logger.error('cache put error', error);
 							resolve(false);
 						});
 				})
 				.catch((error) => {
-					console.log('cache open error', error);
+					Logger.error('cache open error', error);
 					resolve(false);
 				});
 		});
@@ -427,38 +435,36 @@ export class BundleCache {
 		if (request.method === 'GET') {
 			try {
 				if (!this.href) {
-					console.log('href not set', this.href);
+					Logger.warn('href not set', this.href);
 					return false;
 				}
 				const u = new URL(request.url);
 				const segments = u.pathname.split('/');
 				const filename = segments[segments.length - 1];
-				console.log('filename:', filename);
 				const hasExt = /\.\w+$/.test(filename);
 				if (!hasExt) {
-					console.log('no extension', request.url);
+					Logger.log('no extension', request.url);
 					return false;
 				}
 
 				if (filename.endsWith('vconsole.js')) {
-					console.log('ignore vconsole');
+					Logger.log('ignore vconsole');
 					return false;
 				}
 
 				const hrefUrl = new URL(this.href);
 				if (u.origin === hrefUrl.origin && u.pathname === hrefUrl.pathname) {
-					console.log('origin and pathname same');
+					Logger.log('origin and pathname same');
 					return false;
 				}
 				let host = u.origin;
 				if (this.ignoredHosts.includes(host)) {
-					console.log('ignored host', host);
+					Logger.log('ignored host', host);
 					return false;
 				}
-				// console.log('cache match', request.url);
 				return true;
 			} catch (error) {
-				console.log('match error', error);
+				Logger.error('match error', error);
 				return false;
 			}
 		}
@@ -467,7 +473,6 @@ export class BundleCache {
 	}
 
 	onFetch(request: Request): Promise<Response> | null {
-		console.log('onFetch', request.url);
 		if (!this.match(request)) {
 			return null;
 		} else {
@@ -479,7 +484,6 @@ export class BundleCache {
 							.match(request)
 							.then((res) => {
 								if (res) {
-									// console.log('cache hit', request.url, res.headers.get('Content-Type'));
 									resolve(res);
 								} else {
 									fetch(request).then((res) => {
@@ -489,7 +493,7 @@ export class BundleCache {
 								}
 							})
 							.catch((error) => {
-								console.log('match cache error', error);
+								Logger.error('match cache error', error);
 								fetch(request).then((res) => {
 									this.cacheResponse(request, res.clone());
 									resolve(res);
@@ -497,7 +501,7 @@ export class BundleCache {
 							});
 					})
 					.catch((error) => {
-						console.log('open cache error', error);
+						Logger.error('open cache error', error);
 						fetch(request).then((res) => {
 							this.cacheResponse(request, res.clone());
 							resolve(res);

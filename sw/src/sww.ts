@@ -1,3 +1,5 @@
+import { Logger } from './Logger';
+
 interface Ware {
 	onInstall?(evt: ExtendableEvent): void;
 	onActivate?(evt: ExtendableEvent): void;
@@ -41,19 +43,19 @@ export class ServiceWorkerWare {
 				this.onMessage(evt as ExtendableMessageEvent);
 				break;
 			default:
-				console.log('未知事件类型', evt.type);
+				Logger.warn('未知事件类型', evt.type);
 		}
 	}
 
 	onInstall(evt: ExtendableEvent): void {
-		console.log('onInstall');
+		Logger.log('onInstall');
 		// self.skipWaiting();
 		const installation = this.getWareTasks('onInstall');
 		evt.waitUntil(installation);
 	}
 
 	onActivate(evt: ExtendableEvent): void {
-		console.log('onActivate');
+		Logger.log('onActivate');
 		let activation = this.getWareTasks('onActivate');
 		if (this.autoClaim) {
 			activation = activation.then(() => self.clients.claim());
@@ -75,7 +77,6 @@ export class ServiceWorkerWare {
 		}
 
 		if (current >= wares.length) {
-			// console.log('runMiddleware 结束', current, wares.length, request);
 			return response;
 		}
 
