@@ -77,6 +77,7 @@ class upload {
 			const promise = this.task(files[i]).then(() => {
 				// 从执行队列中移除已完成的任务
 				executing.splice(executing.indexOf(promise), 1);
+				this.curConnections--;  // 任务完成后减少计数
 			});
 
 			executing.push(promise);
