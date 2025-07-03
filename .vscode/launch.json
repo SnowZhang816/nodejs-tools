@@ -27,6 +27,14 @@
 			"skipFiles": ["<node_internals>/**"],
 			"program": "${workspaceFolder}\\upload-hwy\\main.js",
 			"outFiles": ["${workspaceFolder}/**/*.js"]
+		},
+		{
+			"type": "node",
+			"request": "launch",
+			"name": "upload-cf",
+			"skipFiles": ["<node_internals>/**"],
+			"program": "${workspaceFolder}\\upload-cf\\main.js",
+			"outFiles": ["${workspaceFolder}/**/*.js"]
 		}
 	]
 }
