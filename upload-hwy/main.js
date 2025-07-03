@@ -26,6 +26,8 @@ async function main() {
 	await uploader.uploadDir(dir);
 
 	console.log("上传完成");
+
+	uploader.close();
 }
 
 main();

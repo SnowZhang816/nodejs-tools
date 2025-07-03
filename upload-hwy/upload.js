@@ -16,13 +16,16 @@ class upload {
     constructor(env) {
         config({ path: path.join(__dirname, `env/.env.${env}`) });
 
+        console.log(`当前环境: BUCKET：${process.env.BUCKET}, BUCKET_PATH: ${process.env.BUCKET_PATH}, 
+            ACCESS_KEY_ID: ${process.env.ACCESS_KEY_ID}, SECRET_ACCESS_KEY: ${process.env.SECRET_ACCESS_KEY}, SERVER: ${process.env.BUCKET_SERVER}`)
+
         this.bucket = process.env.BUCKET;
         this.bucketPath = process.env.BUCKET_PATH;
 
         this.client = new ObsClient({
             access_key_id: process.env.ACCESS_KEY_ID,
             secret_access_key: process.env.SECRET_ACCESS_KEY,
-            server: process.env.SERVER
+            server: process.env.BUCKET_SERVER
         })
 
         process.setMaxListeners(0)
@@ -30,6 +33,7 @@ class upload {
 
     async putFile(Key, srcFile) {
         try {
+            console.log(`上传文件: ${srcFile} 到桶: ${this.bucket}, 路径: ${Key}`)
             const params = {
                 // 指定存储桶名称
                 Bucket: this.bucket,
@@ -120,6 +124,10 @@ class upload {
             }
         }
         return allFiles;
+    }
+
+    close() {
+        this.client.close()
     }
 }
 
