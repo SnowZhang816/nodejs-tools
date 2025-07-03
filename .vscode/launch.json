@@ -19,6 +19,14 @@
 			"skipFiles": ["<node_internals>/**"],
 			"program": "${workspaceFolder}\\AnalysisCocosRes\\main.js",
 			"outFiles": ["${workspaceFolder}/**/*.js"]
+		},
+		{
+			"type": "node",
+			"request": "launch",
+			"name": "upload-hyw",
+			"skipFiles": ["<node_internals>/**"],
+			"program": "${workspaceFolder}\\upload-hwy\\main.js",
+			"outFiles": ["${workspaceFolder}/**/*.js"]
 		}
 	]
 }
