@@ -26,7 +26,7 @@ class Main {
 			// 单文件大小限制
 			Max: 5200000, // 5MB == 5242848.754299136
 			/** 缓存keys */
-			keyCache: true,
+			keyCache: false,
 			/** 失败列表重试次数 */
 			failRetry: 3,
 		};
