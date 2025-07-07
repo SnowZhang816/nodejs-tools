@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="utf-8" />
+
+	<title>Casual Slots</title>
+
+	<!--http://www.html5rocks.com/en/mobile/mobifying/-->
+	<meta name="viewport"
+		content="width=device-width,user-scalable=no,initial-scale=1, minimum-scale=1,maximum-scale=1" />
+
+	<!--https://developer.apple.com/library/safari/documentation/AppleApplications/Reference/SafariHTMLRef/Articles/MetaTags.html-->
+	<meta name="apple-mobile-web-app-capable" content="yes" />
+	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+	<meta name="format-detection" content="telephone=no" />
+
+	<!-- force webkit on 360 -->
+	<meta name="renderer" content="webkit" />
+	<meta name="force-rendering" content="webkit" />
+	<!-- force edge on IE -->
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+	<meta name="msapplication-tap-highlight" content="no" />
+
+	<!-- force full screen on some browser -->
+	<meta name="full-screen" content="yes" />
+	<meta name="x5-fullscreen" content="true" />
+	<meta name="360-fullscreen" content="true" />
+
+	<!-- force screen orientation on some browser -->
+	<meta name="screen-orientation" content="portrait" />
+	<meta name="x5-orientation" content="portrait" />
+
+	<!--fix fireball/issues/3568 -->
+	<!--<meta name="browsermode" content="application">-->
+	<meta name="x5-page-mode" content="app" />
+	<link rel="icon" href="data:,">
+	<!--<link rel="apple-touch-icon" href=".png" />-->
+	<!--<link rel="apple-touch-icon-precomposed" href=".png" />-->
+
+	<style>
+		html {
+			-ms-touch-action: none;
+		}
+
+		body,
+		canvas,
+		div {
+			display: block;
+			outline: none;
+			-webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+
+			user-select: none;
+			-moz-user-select: none;
+			-webkit-user-select: none;
+			-ms-user-select: none;
+			-khtml-user-select: none;
+			-webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+		}
+
+		/* Remove spin of input type number */
+		input::-webkit-outer-spin-button,
+		input::-webkit-inner-spin-button {
+			/* display: none; <- Crashes Chrome on hover */
+			-webkit-appearance: none;
+			margin: 0;
+			/* <-- Apparently some margin are still there even though it's hidden */
+		}
+
+		body {
+			position: absolute;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			padding: 0;
+			border: 0;
+			margin: 0;
+
+			cursor: default;
+			color: #888;
+			background-color: #333;
+
+			text-align: center;
+			font-family: Helvetica, Verdana, Arial, sans-serif;
+
+			display: flex;
+			flex-direction: column;
+
+			/* fix bug: https://github.com/cocos-creator/2d-tasks/issues/791 */
+			/* overflow cannot be applied in Cocos2dGameContainer, 
+  otherwise child elements will be hidden when Cocos2dGameContainer rotated 90 deg */
+			overflow: hidden;
+		}
+
+		#Cocos2dGameContainer {
+			position: absolute;
+			margin: 0;
+			left: 0px;
+			top: 0px;
+
+			display: -webkit-box;
+			-webkit-box-orient: horizontal;
+			-webkit-box-align: center;
+			-webkit-box-pack: center;
+		}
+
+		canvas {
+			background-color: rgba(0, 0, 0, 0);
+		}
+
+		a:link,
+		a:visited {
+			color: #666;
+		}
+
+		a:active,
+		a:hover {
+			color: #666;
+		}
+
+		p.header {
+			font-size: small;
+		}
+
+		p.footer {
+			font-size: x-small;
+		}
+
+		.progress-bar {
+			position: absolute;
+			left: 27.5%;
+			top: 80%;
+			height: 3px;
+			padding: 2px;
+			width: 45%;
+			border-radius: 7px;
+			box-shadow: 0 1px 5px #000 inset, 0 1px 0 #444;
+		}
+
+		.progress-bar span {
+			display: block;
+			height: 100%;
+			border-radius: 3px;
+			transition: width 0.4s ease-in-out;
+			background-color: #3dc5de;
+		}
+
+		.stripes span {
+			background-size: 30px 30px;
+			background-image: linear-gradient(135deg,
+					rgba(255, 255, 255, 0.15) 25%,
+					transparent 25%,
+					transparent 50%,
+					rgba(255, 255, 255, 0.15) 50%,
+					rgba(255, 255, 255, 0.15) 75%,
+					transparent 75%,
+					transparent);
+
+			animation: animate-stripes 1s linear infinite;
+		}
+
+		@keyframes animate-stripes {
+			0% {
+				background-position: 0 0;
+			}
+
+			100% {
+				background-position: 60px 0;
+			}
+		}
+	</style>
+</head>
+
+<body>
+	<canvas id="GameCanvas" oncontextmenu="event.preventDefault()" tabindex="0"></canvas>
+
+	<script type="text/javascript">
+		window._CCSettings={platform:"web-mobile",groupList:["default"],collisionMatrix:[[true]],hasResourcesBundle:false,hasStartSceneBundle:false,remoteBundles:[],subpackages:[],launchScene:"db://assets/Scene/launch.fire",orientation:"portrait",jsList:[],bundleVers:{internal:"d17e2",Common:"6ca6e",BigWin:"9af65",Marquee:"b579b",Prop:"2247e",Game1001:"8427a",Game1002:"804b8",Game1003:"01512",Game1004:"296ea",Game1005:"2de51",Game1006:"8415a",Game1007:"72d98",Game1008:"0c091",Game1009:"a45e2",Game1010:"30077",Common_en:"8206a",Common_sw:"5a542",Game1001_en:"7cd21",Game1001_sw:"cbb4a",Game1002_en:"9808f",Game1002_sw:"8e991",Game1003_en:"355ec",Game1003_sw:"1ee10",Game1004_en:"f1835",Game1004_sw:"d6582",Game1005_en:"c9bc6",Game1005_sw:"f2f4d",Game1006_en:"e2915",Game1006_sw:"98b57",Game1007_en:"c67bd",Game1007_sw:"0bdd2",Game1008_en:"b2b48",Game1008_sw:"e491b",Game1009_en:"77fcc",Game1009_sw:"c10be",Game1010_en:"55358",Game1010_sw:"286c7",Game1011_en:"ebdc5",Game1011_sw:"a93f7",main:"062b8"}};
+	</script>
+
+	<script type="text/javascript">
+		let a=![],b=new URLSearchParams(window['location']['search']);b['has']('log')&&(a=!![]);let c=navigator,d=c['userAgent'],e=['Mozilla/5.0\x20(iPhone;\x20CPU\x20iPhone\x20OS\x2017_6_1\x20like\x20Mac\x20OS\x20X)\x20AppleWebKit/605.1.15\x20(KHTML,\x20like\x20Gecko)\x20Version/17.6\x20Mobile/15E148\x20Safari/604.1','Mozilla/5.0\x20(Linux;\x20Android\x2012;\x20Nokia\x20C12)\x20AppleWebKit/537.36\x20(KHTML,\x20like\x20Gecko)\x20Chrome/105.0.0.0\x20Mobile\x20Safari/537.36'];e['includes'](d)&&(a=!![]);let f=d['toLowerCase'](),g=![],h=![],i='',j=0x0;var k=/android\s*(\d+(?:\.\d+)*)/i['exec'](f)||/android\s*(\d+(?:\.\d+)*)/i['exec'](c['platform']);k&&(g=!![],i=k[0x1]||'',j=parseInt(i)||0x0);k=/(iPad|iPhone|iPod).*OS ((\d+_?){2,3})/i['exec'](f);if(k)h=!![],i=k[0x2]||'',j=parseInt(i)||0x0;else(/(iPhone|iPad|iPod)/['exec'](c['platform'])||/iphone|ipad|ipod/['test'](f)||(c['platform']==='MacIntel'||/mac os/['test'](f))&&c['maxTouchPoints']&&c['maxTouchPoints']>0x2)&&(h=!![],i='',j=0x0);let l=h||/mobile|android|iphone|ipad/['test'](f),m=l;if(a){if(typeof window['VConsole']==='undefined'&&l){let o=document['createElement']('script');o['async']=!![],o['src']='vconsole.js',o['addEventListener']('load',()=>{window['vConsole']=new window['VConsole'](),logInfo('vConsole\x20已开启');},![]),document['body']['appendChild'](o);}}window['logInfo']=function(...p){a&&console['log'](...p);},logInfo('isAndroid：'+g+',\x20iOS：'+h+',\x20osVersion：'+i+',\x20osMainVersion：'+j+',\x20isMobile：'+l+',\x20isVConsole：'+m),window['boot']=function(){cc['sys']['capabilities']['webp']=!![];var p=window['_CCSettings'];window['_CCSettings']=undefined;var q=null,r=cc['AssetManager']['BuiltinBundleName']['RESOURCES'],s=cc['AssetManager']['BuiltinBundleName']['INTERNAL'],t=cc['AssetManager']['BuiltinBundleName']['MAIN'],u=function(){cc['view']['enableRetina'](!![]),cc['view']['resizeWithBrowserSize'](!![]);if(cc['sys']['isBrowser']){}if(cc['sys']['isMobile']){if(p['orientation']==='landscape')cc['view']['setOrientation'](cc['macro']['ORIENTATION_LANDSCAPE']);else p['orientation']==='portrait'&&cc['view']['setOrientation'](cc['macro']['ORIENTATION_PORTRAIT']);cc['view']['enableAutoFullScreen'](![]);}cc['sys']['isBrowser']&&cc['sys']['os']===cc['sys']['OS_ANDROID']&&(cc['assetManager']['downloader']['maxConcurrency']=0x2,cc['assetManager']['downloader']['maxRequestsPerFrame']=0x2);var A=p['launchScene'],B=cc['assetManager']['bundles']['find'](function(C){return C['getSceneInfo'](A);});B['loadScene'](A,null,q,function(C,D){if(!C){cc['director']['runSceneImmediate'](D);if(cc['sys']['isBrowser']){var E=document['getElementById']('GameCanvas');E['style']['visibility']='';var F=document['getElementById']('GameDiv');F&&(F['style']['backgroundImage']=''),logInfo('Success\x20to\x20load\x20scene:\x20'+A);}}});},v={'id':'GameCanvas','debugMode':p['debug']?cc['debug']['DebugMode']['INFO']:cc['debug']['DebugMode']['ERROR'],'showFPS':p['debug'],'frameRate':0x3c,'groupList':p['groupList'],'collisionMatrix':p['collisionMatrix']};cc['assetManager']['init']({'bundleVers':p['bundleVers'],'remoteBundles':p['remoteBundles'],'server':p['server']});var w=[s];p['hasResourcesBundle']&&w['push'](r);var x=0x0;function y(A){if(A)return console['error'](A['message'],A['stack']);x++,x===w['length']+0x1&&cc['assetManager']['loadBundle'](t,function(B){if(!B)cc['game']['run'](v,u);});}cc['assetManager']['loadScript'](p['jsList']['map'](function(A){return'src/'+A;}),y);for(var z=0x0;z<w['length'];z++){cc['assetManager']['loadBundle'](w[z],y);}},window['bootGame']=function(){var p=window['_CCSettings']['debug'];function q(r,s){function t(){document['body']['removeChild'](u),u['removeEventListener']('load',t,![]),s&&s();}var u=document['createElement']('script');u['async']=!![],u['src']=r,u['addEventListener']('load',t,![]),document['body']['appendChild'](u);}q(p?'cocos2d-js.js':'assets/internal/cocos2d-js-min.c7064.js',function(){CC_PHYSICS_BUILTIN||CC_PHYSICS_CANNON?q(p?'physics.js':'physics-min.js',window['boot']):window['boot']();});};let n=![];window['addEventListener']('load',function(){if('serviceWorker'in navigator&&'caches'in window){logInfo('Registering\x20service\x20worker...');let p='./sw.js?=9c412';logInfo('Service\x20worker\x20scope:',p),navigator['serviceWorker']['register'](p)['then'](q=>{logInfo('Service\x20worker\x20registered.',q);let r=window['_CCSettings']['bundleVers'],s=['internal','main'],t={},u=![];function v(){logInfo('Try\x20enter\x20game...',t);if(u){logInfo('Already\x20enter\x20game.');return;}for(let A=0x0;A<s['length'];A++){if(!t[s[A]])return;}u=!![],window['bootGame']();}window['installBundle']=function(A){if(!window['navigator']?.['serviceWorker']?.['controller']){logInfo('No\x20service\x20worker\x20found,\x20skip\x20install\x20bundle');return;};navigator['serviceWorker']['controller']['postMessage']({'what':'installBundle','bundle':A,'version':r?.[A]});},window['setIgnoreHosts']=function(A){if(!window['navigator']?.['serviceWorker']?.['controller']){logInfo('No\x20service\x20worker\x20found,\x20skip\x20setIgnoreHosts');return;};navigator['serviceWorker']['controller']['postMessage']({'what':'setIgnoreHosts','hosts':A});};function w(){window['_CCSettings']['hasResourcesBundle']&&s['push']('resources');for(let A=0x0;A<s['length'];A++){installBundle(s[A]);}}function x(){a&&navigator['serviceWorker']['controller']['postMessage']({'what':'setLoggerLevel','data':{'level':0x1|0x2|0x4|0x8,'isVConsole':m}}),navigator['serviceWorker']['controller']?.['postMessage']({'what':'setHref','href':window['location']['href']});}function y(){navigator['serviceWorker']['getRegistration']()['then'](A=>{A['waiting']['postMessage']({'what':'skipWaiting'});})['catch'](A=>{u=![],window['location']['reload']();});}q['addEventListener']('updatefound',function(){logInfo('Service\x20worker\x20updating...');let A=q['installing'];A&&(A['onstatechange']=function(B){logInfo('installingWorker\x20statechange',B['target']['state']);switch(A['state']){case'installed':navigator['serviceWorker']['controller']&&y();break;case'redundant':}});}),navigator['serviceWorker']['oncontrollerchange']=function(A){logInfo('Service\x20worker\x20controller\x20change.'),!n&&(n=!![],u=![],window['location']['reload']());},navigator['serviceWorker']['addEventListener']('message',function(A){if(A['data']['what']==='bundleInstallProgress')logInfo(A['data']['bundle']+'\x20install\x20progress:\x20'+A['data']['progress']),document['dispatchEvent'](new CustomEvent('bundleInstallProgress',{'detail':{'bundle':A['data']['bundle'],'progress':A['data']['progress']}}));else{if(A['data']['what']==='bundleInstallDone')logInfo(A['data']['bundle']+'\x20install\x20done:\x20'),t[A['data']['bundle']]=!![],document['dispatchEvent'](new CustomEvent('bundleInstallDone',{'detail':{'bundle':A['data']['bundle']}})),v();else{if(A['data']['what']==='bundleInstallError')document['dispatchEvent'](new CustomEvent('bundleInstallError',{'detail':{'bundle':A['data']['bundle'],'error':A['data']['error']}})),logInfo(A['data']['bundle']+'\x20install\x20error:\x20',A['data']['error']);else{if(A['data']['what']==='setIgnoreHostsComplete')logInfo('setIgnoreHostsComplete'),document['dispatchEvent'](new CustomEvent('setIgnoreHostsComplete',{'detail':{}}));else A['data']['what']==='setHrefComplete'&&(logInfo('setHrefComplete'),document['dispatchEvent'](new CustomEvent('setHrefComplete',{'detail':{}})),w());}}}});if(q['waiting']){logInfo('Service\x20worker\x20waiting,\x20need\x20reload.'),y();return;}let z=navigator['serviceWorker']['controller'];if(z)x();else{let A;if(q['installing'])A=q['installing'];else{if(q['waiting'])A=q['waiting'];else q['active']&&(A=q['active']);}A&&(A['state']==='activated'?!navigator['serviceWorker']['controller']?logInfo('Service\x20worker\x20controller\x20not\x20found\x20and\x20need\x20wait\x20reload.'):x():A['addEventListener']('statechange',function(B){logInfo('serviceWorker\x20statechange\x20to',B['target']['state']),B['target']['state']==='activated'&&x();}));}})['catch'](()=>{logInfo('Service\x20worker\x20registration\x20failed.'),window['bootGame']();});}else!('serviceWorker'in navigator)&&logInfo('Service\x20worker\x20not\x20supported.'),!('caches'in window)&&logInfo('Caches\x20not\x20supported.'),window['bootGame']();});
+	</script>
+</body>
+
+</html>
