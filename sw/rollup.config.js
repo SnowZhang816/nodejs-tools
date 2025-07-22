@@ -5,6 +5,7 @@ import externals from 'rollup-plugin-node-externals';
 import json from '@rollup/plugin-json';
 import terser from '@rollup/plugin-terser';
 import typescript from 'rollup-plugin-typescript2';
+import babel from '@rollup/plugin-babel';
 
 export default defineConfig([
 	{
@@ -17,13 +18,29 @@ export default defineConfig([
 			},
 		],
 		plugins: [
-			nodeResolve(),
+			nodeResolve({
+				extensions: ['.ts']
+			}),
 			externals({
 				devDeps: false,
 			}),
 			typescript(),
 			commonjs(),
 			json(),
+			babel({
+				extensions: [".ts"],
+				babelHelpers: "bundled",
+				presets: [
+					[
+						"@babel/env",
+						{
+							targets: {
+								browsers: ["> 0.1%", "last 2 versions", "not ie <= 8"],
+							},
+						},
+					],
+				],
+			}),
 			terser(),
 		],
 	},
