@@ -487,7 +487,9 @@ export class BundleCache {
 									resolve(res);
 								} else {
 									fetch(request).then((res) => {
-										this.cacheResponse(request, res.clone());
+										if (res.ok) {
+											this.cacheResponse(request, res.clone());
+										}
 										resolve(res);
 									});
 								}
@@ -495,7 +497,9 @@ export class BundleCache {
 							.catch((error) => {
 								Logger.error('match cache error', error);
 								fetch(request).then((res) => {
-									this.cacheResponse(request, res.clone());
+									if (res.ok) {
+										this.cacheResponse(request, res.clone());
+									}
 									resolve(res);
 								});
 							});
@@ -503,7 +507,9 @@ export class BundleCache {
 					.catch((error) => {
 						Logger.error('open cache error', error);
 						fetch(request).then((res) => {
-							this.cacheResponse(request, res.clone());
+							if (res.ok) {
+								this.cacheResponse(request, res.clone());
+							}
 							resolve(res);
 						});
 					});
