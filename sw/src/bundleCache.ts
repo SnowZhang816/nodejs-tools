@@ -483,7 +483,7 @@ export class BundleCache {
 						cache
 							.match(request)
 							.then((res) => {
-								if (res) {
+								if (res && res.ok) {
 									resolve(res);
 								} else {
 									fetch(request).then((res) => {
