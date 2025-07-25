@@ -1,8 +1,8 @@
 /*
  * @Author: 炒粉 380304468@qq.com
  * @Date: 2024-05-11 14:36:52
- * @LastEditors: 炒粉 380304468@qq.com
- * @LastEditTime: 2024-10-28 10:08:04
+ * @LastEditors: zhanghaihui 547615232@qq.com
+ * @LastEditTime: 2025-07-25 10:18:43
  * @FilePath: \tinypng-autoApi\src\mailUtil.ts
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -16,32 +16,32 @@ import mailCx from './emailCreator/mailCX';
 
 /** 邮箱工具类 */
 class MailUtil {
-    /**
-     * 邮箱提供商列表
-     * @param active 是否启用该邮箱提供商
-     */
-    mailProviderList = [
-        { active: true, provider: mailTempNet },
-        { active: false, provider: mailTM },
-        { active: false, provider: mailCx }
-    ];
-    mailProvider: MailBase;
+	/**
+	 * 邮箱提供商列表
+	 * @param active 是否启用该邮箱提供商
+	 */
+	mailProviderList = [
+		{ active: false, provider: mailTempNet },
+		{ active: true, provider: mailTM },
+		{ active: false, provider: mailCx },
+	];
+	mailProvider: MailBase;
 
-    constructor() {
-        this.mailProvider = this.mailProviderList.find((e) => e.active)!.provider;
-    }
+	constructor() {
+		this.mailProvider = this.mailProviderList.find((e) => e.active)!.provider;
+	}
 
-    /** 获取邮箱 */
-    async getMailAddress() {
-        let email = await this.mailProvider.getMailAddress();
-        return email;
-    }
+	/** 获取邮箱 */
+	async getMailAddress() {
+		let email = await this.mailProvider.getMailAddress();
+		return email;
+	}
 
-    /** 获取激活链接 */
-    async getActiveLink() {
-        let link = await this.mailProvider.getActiveLink();
-        return link;
-    }
+	/** 获取激活链接 */
+	async getActiveLink() {
+		let link = await this.mailProvider.getActiveLink();
+		return link;
+	}
 }
 
 const mailUtil = new MailUtil();

@@ -18,7 +18,7 @@ class MailUtil {
         this.mailProviderList = [
             { active: false, provider: mailTempNet_1.default },
             { active: true, provider: mailTM_1.default },
-            { active: false, provider: mailCX_1.default }
+            { active: false, provider: mailCX_1.default },
         ];
         this.mailProvider = this.mailProviderList.find((e) => e.active).provider;
     }
