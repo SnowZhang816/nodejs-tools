@@ -16,6 +16,8 @@ class upload {
     curConnections = 0
     completed = 0
 
+    failList = [];
+
     constructor(env) {
         config({ path: path.join(__dirname, `env/.env.${env}`) });
 
@@ -64,14 +66,14 @@ class upload {
         };
     };
 
-    async putFile(Key, srcFile) {
+    async putFile(key, srcFile) {
         try {
-            console.log(`上传文件: ${srcFile} 到桶: ${this.bucket}, 路径: ${Key}`)
+            console.log(`上传文件: ${srcFile} 到桶: ${this.bucket}, 路径: ${key}`)
             const params = {
                 // 指定存储桶名称
                 Bucket: this.bucket,
                 // 指定对象名，此处以 example/objectname 为例
-                Key: this.bucketPath ? this.bucketPath + "/" + Key : Key,
+                Key: this.bucketPath ? this.bucketPath + "/" + key : key,
                 // 指定文本对象
                 SourceFile: srcFile
             };
@@ -85,9 +87,13 @@ class upload {
                 return;
             };
 
-
+            this.failList.push({
+                key: key,
+                srcFile: srcFile,
+            });
 
             console.log("An ObsError was found, which means your request sent to OBS was rejected with an error response.");
+            console.log("file", params.Key);
             console.log("Status: %d", result.CommonMsg.Status);
             console.log("Code: %s", result.CommonMsg.Code);
             console.log("Message: %s", result.CommonMsg.Message);
@@ -95,6 +101,11 @@ class upload {
         } catch (error) {
             console.log("An Exception was found, which means the client encountered an internal problem when attempting to communicate with OBS, for example, the client was unable to access the network.");
             console.log(error);
+
+            this.failList.push({
+                key: key,
+                srcFile: srcFile,
+            });
         };
     };
 
@@ -175,10 +186,11 @@ class upload {
         const client = cdn.CdnClient.newBuilder().withCredential(credentials).withRegion(cdn.CdnRegion.valueOf("ap-southeast-1")).build();
         const request = new cdn.CreateRefreshTasksRequest();
         const body = new cdn.RefreshTaskRequestBody();
-        body.type = 'file';
+        body.type = cdn.RefreshTaskRequestBodyTypeEnum.FILE;
         body.url = `https://res.xevogames.com/${process.env.BUCKET_PATH}/${key}`;
 
         request.withBody(body);
+
 
         try {
             let response = await client.createRefreshTasks(request);
@@ -236,8 +248,26 @@ class upload {
         await this._uploadDir(dir, dir);
         console.log(`${files.length}个文件需要上传, 完成${this.completed} 个文件`);
 
+        await this.uploadFailedFiles(1);
+        await this.uploadFailedFiles(2);
+        await this.uploadFailedFiles(3);
+
+        console.log(`${files.length}个文件需要上传, 完成${this.completed} 个文件`);
+
         if (true || refresh) {
-            this.refreshFile(htmlFiles[0]);
+            await this.refreshFile(htmlFiles[0]);
+        }
+    }
+
+    async uploadFailedFiles(times) {
+        if (this.failList.length > 0) {
+            console.log(`第${times}次上传失败的文件有: ${this.failList.length} 个`);
+            let all = [];
+            for (const file of this.failList) {
+                all.push(this._putObject(file.key, file.srcFile));
+            }
+            this.failList = [];
+            await Promise.all(all);
         }
     }
 
