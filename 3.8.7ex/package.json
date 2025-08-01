@@ -1,0 +1,10 @@
+{
+  "name": "NewProject",
+  "uuid": "4e9205c1-e4d1-4831-8a2a-4f99ec7c2d48",
+  "creator": {
+    "version": "3.8.7"
+  },
+  "devDependencies": {
+    "html-minifier": "^4.0.0"
+  }
+}
